@@ -1,0 +1,140 @@
+id: dojo 
+title: Dojo
+version: 1.17.0
+release-notes: Initial release to embassyOS
+license: mit
+wrapper-repo: "https://github.com/Start9Labs/dojo-wrapper"
+upstream-repo: "https://code.samourai.io/dojo/samourai-dojo"
+support-site: "https://code.samourai.io/help"
+marketing-site: "https://ronindojo.io/"
+build: ["make"]
+description:
+  short: Your private backing server for Samourai Wallet. 
+  long: |
+    Samourai Dojo is the backing server for Samourai Wallet. Provides HD account & loose addresses (BIP47) balances & transactions lists. Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
+assets:
+  license: LICENSE
+  icon: icon.svg
+  instructions: docs/instructions.md
+  docker-images: image.tar
+main:
+  type: docker
+  image: main
+  entrypoint: "docker_entrypoint.sh"
+  args: []
+  mounts:
+    main: /root
+health-checks:
+  web:
+    name: Dojo UI
+    success-message: dojo is ready to visit in a web browser
+    type: docker
+    image: main
+    entrypoint: "check-web.sh"
+    args: []
+    system: false
+    io-format: json
+  api:
+    name: Dojo API
+    success-message: The dojo API is accessible and responding
+    type: docker
+    image: main
+    entrypoint: "check-api.sh"
+    args: []
+    system: false
+    io-format: json
+config:
+  get:
+    type: script
+  set:
+    type: script
+properties:
+  type: script
+volumes:
+  main:
+    type: data
+  compat:
+    type: assets 
+interfaces:
+  main:
+    name: Dojo Web UI
+    description: Specifies the interface to listen on for HTTP connections.
+    tor-config:
+      port-mapping:
+        8080: "8080"
+        8081: "8081"
+        8082: "8082"
+    lan-config:
+      443:
+        ssl: true
+        internal: 8080
+      8081:
+        ssl: true
+        internal: 80
+      8082:
+        ssl: true
+        internal: 80
+    ui: true
+    protocols:
+      - tcp
+      - http
+dependencies: 
+  bitcoind:
+    version: ">=0.21.1.2 <=24.0.0"
+    requirement:
+      type: "opt-in"
+      how: Can alternatively configure proxy or bitcoin core  node.
+    description: Used to subscribe to new block events from a full archival node.
+    config:
+      check: 
+        type: script
+      auto-configure:
+        type: script
+  btc-rpc-proxy:
+    version: ">=0.3.2.1 <0.4.0"
+    requirement:
+      type: "opt-out"
+      how: Can alternatively configure proxy or bitcoin core  node.
+    description: Used for RPC permissioning.
+    config:
+      check:
+        type: script
+      auto-configure:
+        type: script
+migrations:
+  from:
+    "*":
+      type: script
+      args: ["from"]
+  to:
+    "*":
+      type: script
+      args: ["to"]
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true 
+    entrypoint: compat 
+    args: 
+      - duplicity
+      - create
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: "/mnt/backup" 
+      main: "/root/data"
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /root/data
+      - /mnt/backup
+    mounts:
+      BACKUP: "/mnt/backup"
+      main: "/root/data"
+

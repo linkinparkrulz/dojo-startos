@@ -1,0 +1,3 @@
+[submodule "samourai-dojo"]
+	path = samourai-dojo
+	url = ./samourai-dojo/
