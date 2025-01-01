@@ -1,0 +1,78 @@
+import { compat, types as T } from "../deps.ts";
+
+export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
+  "tor-address": {
+    "name": "Tor Address",
+    "description": "The Tor address of the network interface",
+    "type": "pointer",
+    "subtype": "package",
+    "package-id": "dojo",
+    "target": "tor-address",
+    "interface": "main",
+  },
+  "bitcoin-user": {
+    "type": "pointer",
+    "name": "RPC Username",
+    "description": "The username for Bitcoin Core's RPC interface",
+    "subtype": "package",
+    "package-id": "bitcoind",
+    "target": "config",
+    "multi": false,
+    "selector": "$.rpc.username",
+  },
+  "bitcoin-password": {
+    "type": "pointer",
+    "name": "RPC Password",
+    "description": "The password for Bitcoin Core's RPC interface",
+    "subtype": "package",
+    "package-id": "bitcoind",
+    "target": "config",
+    "multi": false,
+    "selector": "$.rpc.password",
+  },
+  "payment-code": {
+    "type": "string",
+    "name": "BIP47 Payment Code",
+    "description": "BIP47 Payment Code used for admin authentication",
+    "nullable": true,
+    "copyable": true,
+    "masked": false,
+    "default": "",
+  },
+  "admin-key": {
+    "type": "string",
+    "name": "Admin Key",
+    "description": "Key for accessing the admin/maintenance",
+    "nullable": false,
+    "copyable": true,
+    "masked": true,
+    "default": {
+      "charset": "a-z,A-Z,0-9",
+      "len": 22,
+    },
+  },
+  "api-key": {
+    "type": "string",
+    "name": "API Key",
+    "description": "Key for accessing the services",
+    "nullable": false,
+    "copyable": true,
+    "masked": true,
+    "default": {
+      "charset": "a-z,A-Z,0-9",
+      "len": 22,
+    },
+  },
+  "jwt-secret": {
+    "type": "string",
+    "name": "JWT Secret",
+    "description": "Secret used by the server for signing",
+    "nullable": false,
+    "copyable": true,
+    "masked": true,
+    "default": {
+      "charset": "a-z,A-Z,0-9",
+      "len": 22,
+    },
+  },
+});

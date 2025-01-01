@@ -1,22 +1,22 @@
-id: dojo 
-title: Dojo
-version: 1.17.0
-release-notes: Initial release to embassyOS
-license: mit
-wrapper-repo: "https://github.com/Start9Labs/dojo-wrapper"
-upstream-repo: "https://code.samourai.io/dojo/samourai-dojo"
-support-site: "https://code.samourai.io/help"
-marketing-site: "https://ronindojo.io/"
+id: dojo
+title: "Dojo"
+version: 1.26.1-rc1
+release-notes: Version v1.26.1
+license: MIT
+wrapper-repo: "https://github.com/Start9Labs/dojo-startos"
+upstream-repo: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
+support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
+marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 build: ["make"]
 description:
-  short: Your private backing server for Samourai Wallet. 
+  short: Your private backing server for Samourai Wallet and other light wallets.
   long: |
-    Samourai Dojo is the backing server for Samourai Wallet. Provides HD account & loose addresses (BIP47) balances & transactions lists. Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
+    Samourai Dojo is the backing server for Samourai Wallet and other light wallets. Provides HD account & loose addresses (BIP47) balances & transactions lists.
+    Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
 assets:
   license: LICENSE
-  icon: icon.svg
+  icon: icon.png
   instructions: docs/instructions.md
-  docker-images: image.tar
 main:
   type: docker
   image: main
@@ -24,83 +24,88 @@ main:
   args: []
   mounts:
     main: /root
+    db: /var/lib/mysql
+hardware-requirements:
+  arch:
+    - x86_64
+    - aarch64
 health-checks:
-  web:
-    name: Dojo UI
-    success-message: dojo is ready to visit in a web browser
-    type: docker
-    image: main
-    entrypoint: "check-web.sh"
-    args: []
-    system: false
-    io-format: json
+  web-ui:
+    name: Web Interface
+    success-message: Dojo UI is ready to visit in a web browser
+    type: script
   api:
-    name: Dojo API
-    success-message: The dojo API is accessible and responding
-    type: docker
-    image: main
-    entrypoint: "check-api.sh"
-    args: []
-    system: false
-    io-format: json
+    name: API
+    success-message: Dojo API is reachable and responsive.
+    type: script
 config:
   get:
     type: script
   set:
     type: script
-properties:
-  type: script
+properties: ~
 volumes:
   main:
     type: data
-  compat:
-    type: assets 
+  db:
+    type: data
 interfaces:
   main:
     name: Dojo Web UI
     description: Specifies the interface to listen on for HTTP connections.
     tor-config:
       port-mapping:
-        8080: "8080"
-        8081: "8081"
-        8082: "8082"
+        80: "9000"
     lan-config:
       443:
         ssl: true
-        internal: 8080
-      8081:
-        ssl: true
-        internal: 80
-      8082:
-        ssl: true
-        internal: 80
+        internal: 9000
     ui: true
     protocols:
       - tcp
       - http
-dependencies: 
+dependencies:
   bitcoind:
-    version: ">=0.21.1.2 <=24.0.0"
+    version: ">=0.21.1.2 <29.0.0"
     requirement:
-      type: "opt-in"
-      how: Can alternatively configure proxy or bitcoin core  node.
-    description: Used to subscribe to new block events from a full archival node.
-    config:
-      check: 
-        type: script
-      auto-configure:
-        type: script
-  btc-rpc-proxy:
-    version: ">=0.3.2.1 <0.4.0"
-    requirement:
-      type: "opt-out"
-      how: Can alternatively configure proxy or bitcoin core  node.
-    description: Used for RPC permissioning.
+      type: "required"
+    description: Used to subscribe to new block events from a full archival node
     config:
       check:
         type: script
       auto-configure:
         type: script
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - create
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data
+      db: /var/lib/mysql
+    io-format: yaml
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data
+      db: /var/lib/mysql
+    io-format: yaml
 migrations:
   from:
     "*":
@@ -110,31 +115,3 @@ migrations:
     "*":
       type: script
       args: ["to"]
-backup:
-  create:
-    type: docker
-    image: compat
-    system: true 
-    entrypoint: compat 
-    args: 
-      - duplicity
-      - create
-      - /mnt/backup
-      - /root/data
-    mounts:
-      BACKUP: "/mnt/backup" 
-      main: "/root/data"
-  restore:
-    type: docker
-    image: compat
-    system: true
-    entrypoint: compat
-    args:
-      - duplicity
-      - restore
-      - /root/data
-      - /mnt/backup
-    mounts:
-      BACKUP: "/mnt/backup"
-      main: "/root/data"
-

@@ -1,22 +1,27 @@
-# Wrapper for dojo
+<p align="center">
+  <img src="icon.png" alt="Project Logo" width="21%">
+</p>
 
-Samourai Dojo is the backing server for Samourai Wallet. This .s9pk wrapper will allow you to run Dojo on your Embassy.
+# Dojo for StartOS
+
+Dojo is a simple, minimal project that serves as a template for creating a service that runs on StartOS. This repository creates the `s9pk` package that is installed to run `dojo-startos` on [StartOS](https://github.com/Start9Labs/start-os/). Learn more about service packaging in the [Developer Docs](https://start9.com/latest/developer-docs/).
 
 ## Dependencies
+
+Install the system dependencies below to build this project by following the instructions in the provided links. You can find instructions on how to set up the appropriate build environment in the [Developer Docs](https://docs.start9.com/latest/developer-docs/packaging).
 
 - [docker](https://docs.docker.com/get-docker)
 - [docker-buildx](https://docs.docker.com/buildx/working-with-buildx/)
 - [yq](https://mikefarah.gitbook.io/yq)
 - [deno](https://deno.land/)
-- [embassy-sdk](https://github.com/Start9Labs/embassy-os/tree/master/backend)
 - [make](https://www.gnu.org/software/make/)
+- [start-sdk](https://github.com/Start9Labs/start-os/tree/sdk/)
 
-## Build enviroment
-Prepare your EmbassyOS build enviroment. In this example we are using Ubuntu 20.04.
-
+## Build environment
+Prepare your StartOS build environment. In this example we are using Ubuntu 20.04.
 1. Install docker
 ```
-curl -fsSL https://get.docker.com -o- | bash
+curl -fsSL https://get.docker.com | bash
 sudo usermod -aG docker "$USER"
 exec sudo su -l $USER
 ```
@@ -33,65 +38,84 @@ docker run --privileged --rm linuxkit/binfmt:v0.8
 ```
 sudo snap install yq
 ```
-5. Install essentials build packages
+5. Install deno
+```
+sudo snap install deno
+```
+6. Install essentials build packages
 ```
 sudo apt-get install -y build-essential openssl libssl-dev libc6-dev clang libclang-dev ca-certificates
 ```
-6. Install Rust
+7. Install Rust
 ```
 curl https://sh.rustup.rs -sSf | sh
 # Choose nr 1 (default install)
 source $HOME/.cargo/env
 ```
-7. Install toml
+8. Build and install start-sdk 
 ```
-cargo install toml-cli
+git clone https://github.com/Start9Labs/start-os.git && \
+ cd start-os && git submodule update --init --recursive && \
+ make sdk
 ```
-8. Build and install embassy-sdk
+Initialize sdk & verify install
 ```
-cd ~/ && git clone https://github.com/Start9Labs/embassy-os.git
-cd embassy-os/backend/
-./install-sdk.sh
+start-sdk init
+start-sdk --version
 ```
+Now you are ready to build the `dojo-startos` package!
 
 ## Cloning
 
-Clone the project locally. Note the submodule link to the original project(s). 
+Clone the project locally:
 
 ```
-git clone https://github.com/Start9Labs/dojo-wrapper.git
-cd dojo-wrapper
+git clone https://github.com/Start9Labs/dojo-startos-startos.git
+cd dojo-startos-startos
 git submodule update --init --recursive
 ```
+
 ## Building
 
-To build the project, run the following commands:
-
-```
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-docker buildx create --name multiarch --driver docker-container --use
-docker buildx inspect --bootstrap
-```
-
-You should only run the above commands once to create a custom builder. Afterwards you will only need the below command to make the .s9pk file
+To build the `dojo-startos` package for all platforms using start-sdk, run the following command:
 
 ```
 make
 ```
 
-## Installing (on Embassy)
-
-SSH into an Embassy device.
-`scp` the `.s9pk` to any directory from your local machine.
-Run the following command to install the package:
+To build the `dojo-startos` package for a single platform using start-sdk, run:
 
 ```
-embassy-cli auth login
-#Enter your embassy password then run:
-embassy-cli package install /path/to/dojo.s9pk
+# for amd64
+make x86
 ```
-## Verify Install
+or
+```
+# for arm64
+make arm
+```
 
-Go to your Embassy Services page, select dojo and start the service.
+## Installing (on StartOS)
 
-#Done
+Run the following commands to determine successful install:
+> :information_source: Change server-name.local to your Start9 server address
+
+```
+start-cli auth login
+# Enter your StartOS password
+start-cli --host https://server-name.local package install dojo-startos.s9pk
+```
+
+If you already have your `start-cli` config file setup with a default `host`, you can install simply by running:
+
+```
+make install
+```
+
+> **Tip:** You can also install the dojo-startos.s9pk using **Sideload Service** under the **System > Manage** section.
+
+### Verify Install
+
+Go to your StartOS Services page, select **Dojo**, configure and start the service. Then, verify its interfaces are accessible.
+
+**Done!** 
