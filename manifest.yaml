@@ -9,9 +9,8 @@ support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 build: ["make"]
 description:
-  short: Your private backing server for Samourai Wallet and other light wallets.
-  long: |
-    Samourai Dojo is the backing server for Samourai Wallet and other light wallets. Provides HD account & loose addresses (BIP47) balances & transactions lists.
+  short: Your private backend server for Ashigaru, Samourai Wallet, Sparrow and other light wallets.
+  long: Dojo is the backend server for Ashigaru, Samourai Wallet, Sparrow and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
     Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
 assets:
   license: LICENSE
