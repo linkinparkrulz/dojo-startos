@@ -4,7 +4,30 @@
 
 # Dojo for StartOS
 
-Dojo is a simple, minimal project that serves as a template for creating a service that runs on StartOS. This repository creates the `s9pk` package that is installed to run `dojo-startos` on [StartOS](https://github.com/Start9Labs/start-os/). Learn more about service packaging in the [Developer Docs](https://start9.com/latest/developer-docs/).
+Dojo is self-hosted Bitcoin backend server that powers Ashigaru, Samourai Wallet, Sparrow and other light wallets. It's primarily focused on privacy and self-sovereignty. The Start OS version is a stripped down, dependancy based version of the original client maintained by Pavel The Coder. 
+
+
+**Features**
+
+  - Database to track transactions
+  - API endpoints for wallet interactions
+  - Choose between bitcoin core and testnet4 for node
+  - Choose between electrs and fulcrum for an indexer
+  - Handles BIP44, BIP49, and BIP84 address derivation
+
+**Privacy**
+
+  - Manages HD accounts and BIP47 (PayNym) addresses
+  - Only backend server that supports wallets that use Ricochet, Stonewall, StonewallX2 and Stowaway
+
+**Target Users**
+
+  - Ashigaru users
+  - Sparrow Users
+  - Samourai Wallet users
+  - Privacy-focused Bitcoin users
+  - Self-custody advocates
+  - Users wanting to run their own Bitcoin infrastructure
 
 ## Dependencies
 
