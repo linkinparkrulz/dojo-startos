@@ -17,8 +17,15 @@ export const setConfig: T.ExpectedExports.setConfig = async (
       ? { 'bitcoind-testnet': ['synced'] }
       : {};
 
+  // deno-lint-ignore no-explicit-any
+  const dependsOnFulcrum: { [key: string]: string[] } =
+    (newConfig as any) ?.indexer?.type === 'fulcrum'
+      ? { 'fulcrum': ['synced'] }
+      : {};
+
   return compat.setConfig(effects, newConfig, {
     ...dependsOnBitcoind,
     ...dependsOnBitcoindTestnet,
+    ...dependsOnFulcrum,
   });
 };

@@ -73,6 +73,27 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
       },
     },
   },
+  "indexer": {
+    "type": "union",
+    "name": "Indexer",
+    "description":
+      "The indexer you want to use for Dojo",
+    "tag": {
+      "id": "type",
+      "name": "Select Indexer",
+      "variant-names": {
+        "disabled": "No Indexer",
+        "fulcrum": "Fulcrum",
+      },
+      "description":
+        "The indexer you want to use for Dojo",
+    },
+    "default": "disabled",
+    "variants": {
+      "disabled": {},
+      "fulcrum": {},
+    },
+  },
   "payment-code": {
     "type": "string",
     "name": "BIP47 Payment Code",
