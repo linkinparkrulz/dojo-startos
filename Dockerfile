@@ -6,7 +6,7 @@ ENV NODE_ENV=production
 ENV APP_DIR=/home/node/app
 
 RUN set -ex && \
-    apk --no-cache add gcc g++ make python3 curl cmake
+    apk --no-cache add gcc g++ make python3 curl cmake zeromq-dev
 
 # Create app directory
 RUN mkdir "$APP_DIR"
