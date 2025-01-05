@@ -16,7 +16,7 @@ COPY ./samourai-dojo/. "$APP_DIR"
 
 # Install node modules required by the app
 RUN cd "$APP_DIR" && \
-    npm install --omit=dev -dd
+    npm install --omit=dev
 
 ##### Final stage
 
