@@ -15,7 +15,6 @@ RUN mkdir "$APP_DIR"
 COPY ./samourai-dojo/. "$APP_DIR"
 
 # Install node modules required by the app
-RUN apk add --no-cache zeromq-dev
 RUN cd "$APP_DIR" && \
     npm install --omit=dev --build-from-source=false
 
