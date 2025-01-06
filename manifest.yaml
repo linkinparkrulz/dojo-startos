@@ -15,7 +15,7 @@ description:
 assets:
   license: LICENSE
   icon: icon.png
-  instructions: docs/instructions.md
+  instructions: instructions.md
 main:
   type: docker
   image: main
@@ -77,12 +77,17 @@ dependencies:
       how: Use the Bitcoin Core Testnet4
     description: Used to subscribe to new block events from a full archival node (testnet)
   fulcrum:
-    version: ">=0"
+    version: ">=1.11.0"
     requirement:
       type: "opt-in"
       how: Set Indexer to Fulcrum in the config
-    description: Used for fast scan of addresses
-backup:
+    description: Used for fast scan of addresses and indexing for deep wallets. 
+  electrs:
+    version: ">=0"
+    requirement:
+      type: "opt-in"
+      how: Set Indexer to electrs in the config
+    description: A more stable, but less performant indexer.
   create:
     type: docker
     image: compat
