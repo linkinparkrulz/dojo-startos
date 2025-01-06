@@ -19,5 +19,9 @@ export const setConfig: T.ExpectedExports.setConfig = async (
     dependencies['fulcrum'] = ['synced'];
   }
 
+  if ((newConfig as any)?.indexer?.type === 'electrs') {
+    dependencies['electrs'] = ['synced'];
+  }
+
   return compat.setConfig(effects, newConfig, dependencies);
 };

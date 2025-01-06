@@ -83,7 +83,8 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
       "name": "Select Indexer",
       "variant-names": {
         "disabled": "No Indexer",
-        "fulcrum": "Fulcrum",
+        "electrs": "Electrs",
+        "fulcrum": "Fulcrum (preferred)",
       },
       "description":
         "The indexer you want to use for Dojo",
@@ -91,6 +92,7 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "default": "disabled",
     "variants": {
       "disabled": {},
+      "electrs": {},
       "fulcrum": {},
     },
   },
