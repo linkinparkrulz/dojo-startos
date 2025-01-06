@@ -93,6 +93,7 @@ dependencies:
     requirement:
       type: "opt-in"
       how: Set Indexer to Fulcrum in the config
+<<<<<<< HEAD
     description: Used for fast scan of addresses and indexing for deep wallets.
   electrs:
     version: ">=0.10.7"
@@ -101,6 +102,15 @@ dependencies:
       how: Set Indexer to Electrs in the config
     description: A more stable, but less performant indexer.
 backup:
+=======
+    description: Used for fast scan of addresses and indexing for deep wallets. 
+  electrs:
+    version: ">=0"
+    requirement:
+      type: "opt-in"
+      how: Set Indexer to electrs in the config
+    description: A more stable, but less performant indexer.
+>>>>>>> 713d9c1 (Remove -dd flag, modified zeromq install, added dependency check for fulcrum/electrs)
   create:
     type: docker
     image: compat
