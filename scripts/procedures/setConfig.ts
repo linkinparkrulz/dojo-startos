@@ -5,27 +5,23 @@ export const setConfig: T.ExpectedExports.setConfig = async (
   effects: T.Effects,
   newConfig: T.Config,
 ) => {
-  // deno-lint-ignore no-explicit-any
-  const dependsOnBitcoind: { [key: string]: string[] } =
-    (newConfig as any) ?.['bitcoin-node']?.type === 'bitcoind'
-      ? { 'bitcoind': ['synced'] }
-      : {};
+  const dependencies: { [key: string]: string[] } = {};
 
-  // deno-lint-ignore no-explicit-any
-  const dependsOnBitcoindTestnet: { [key: string]: string[] } =
-    (newConfig as any) ?.['bitcoin-node']?.type === 'bitcoind-testnet'
-      ? { 'bitcoind-testnet': ['synced'] }
-      : {};
+  if ((newConfig as any)?.['bitcoin-node']?.type === 'bitcoind') {
+    dependencies['bitcoind'] = ['synced'];
+  }
 
-  // deno-lint-ignore no-explicit-any
-  const dependsOnFulcrum: { [key: string]: string[] } =
-    (newConfig as any) ?.indexer?.type === 'fulcrum'
-      ? { 'fulcrum': ['synced'] }
-      : {};
+  if ((newConfig as any)?.['bitcoin-node']?.type === 'bitcoind-testnet') {
+    dependencies['bitcoind-testnet'] = ['synced'];
+  }
 
-  return compat.setConfig(effects, newConfig, {
-    ...dependsOnBitcoind,
-    ...dependsOnBitcoindTestnet,
-    ...dependsOnFulcrum,
-  });
+  if ((newConfig as any)?.indexer?.type === 'fulcrum') {
+    dependencies['fulcrum'] = ['synced'];
+  }
+
+  if ((newConfig as any)?.indexer?.type === 'electrs') {
+    dependencies['electrs'] = ['synced'];
+  }
+
+  return compat.setConfig(effects, newConfig, dependencies);
 };
