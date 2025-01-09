@@ -19,6 +19,14 @@ const matchBitcoindConfig = shape({
   }),
 });
 
+const matchIndexerConfig = shape({
+  type: string,  // "electrs" or "fulcrum"
+  rpc: shape({
+    enable: boolean,
+    port: number,
+  }),
+});
+
 export const dependencies: T.ExpectedExports.dependencies = {
   bitcoind: {
     // deno-lint-ignore require-await
@@ -58,5 +66,41 @@ export const dependencies: T.ExpectedExports.dependencies = {
       // }
       return { result: config };
     },
+  },
+  indexer: {
+    // deno-lint-ignore require-await
+    async check(effects, config) {
+      effects.info("check indexer");
+      if (!matchIndexerConfig.test(config)) {
+        return { error: "Indexer config is not the correct shape" };
+      }
+      if (!config.rpc.enable) {
+        return { error: "Must have RPC enabled" };
+      }
+      if (!["electrs", "fulcrum"].includes(config.type)) {
+        return { error: "Indexer type must be either 'electrs' or 'fulcrum'" };
+      }
+      return { result: null };
+    },
+
+    // deno-lint-ignore require-await
+    async autoConfigure(effects, configInput) {
+      effects.info("autoconfigure indexer");
+      const config = matchIndexerConfig.unsafeCast(configInput);
+      config.rpc.enable = true;
+
+      // Set default type if not specified
+      if (!config.type) {
+        config.type = "electrs";  // default to electrs
+      }
+
+      // Ensure port is set
+      if (!config.rpc.port) {
+        config.rpc.port = 50001;  // default electrum port
+      }
+
+      return { result: config };
+    },
   }
+
 };
