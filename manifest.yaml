@@ -15,7 +15,7 @@ description:
 assets:
   license: LICENSE
   icon: icon.png
-  instructions: docs/instructions.md
+  instructions: instructions.md
 main:
   type: docker
   image: main
