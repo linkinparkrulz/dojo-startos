@@ -81,7 +81,7 @@ dependencies:
     requirement:
       type: "opt-in"
       how: Set Indexer to Fulcrum in the config
-    description: Used for fast scan of addresses
+    description: Used for fast scan of addresses and indexing for deep wallets.
   electrs:
     version: ">=0.10.7"
     requirement:
