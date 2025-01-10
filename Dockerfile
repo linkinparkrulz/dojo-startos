@@ -6,7 +6,7 @@ ENV NODE_ENV=production
 ENV APP_DIR=/home/node/app
 
 RUN set -ex && \
-    apk --no-cache add gcc g++ make python3 curl cmake zeromq-dev
+    apk --no-cache add gcc g++ make python3 curl cmake zeromq zeromq-dev
 
 # Create app directory
 RUN mkdir "$APP_DIR"
@@ -17,6 +17,19 @@ COPY ./samourai-dojo/. "$APP_DIR"
 # Install node modules required by the app
 RUN cd "$APP_DIR" && \
     npm install --omit=dev --build-from-source=false
+
+# Copy template files and create index.js
+COPY ./samourai-dojo/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/
+COPY ./samourai-dojo/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/
+
+# Create index.js based on network type
+ARG COMMON_BTC_NETWORK=mainnet
+RUN mkdir -p /home/node/app/static/admin/conf && \
+    if [ "$COMMON_BTC_NETWORK" != "mainnet" ]; then \
+    cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js; \
+    else \
+    cp /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js; \
+    fi
 
 ##### Final stage
 
