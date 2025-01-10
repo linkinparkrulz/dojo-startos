@@ -70,12 +70,24 @@ dependencies:
       type: "opt-out"
       how: Use the Bitcoin Core (default)
     description: Used to subscribe to new block events from a full archival node
+    config:
+      check:
+        type: script
+      auto-configure:
+        type: script
+    requires-runtime-config: true
   bitcoind-testnet:
     version: ">=0.21.1.2 <29.0.0"
     requirement:
       type: "opt-in"
       how: Use the Bitcoin Core Testnet4
     description: Used to subscribe to new block events from a full archival node (testnet)
+    config:
+      check:
+        type: script
+      auto-configure:
+        type: script
+    requires-runtime-config: true
   fulcrum:
     version: ">=1.11.0"
     requirement:
