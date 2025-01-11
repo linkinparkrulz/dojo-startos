@@ -41,9 +41,10 @@ export const dependencies: T.ExpectedExports.dependencies = {
         return { error: "Must have RPC enabled" };
       }
 
-      // if (config.advanced.pruning.mode !== "disabled") {
-      //   return { error: "Pruning must be disabled (must be an archival node)" };
-      // }
+      if (config.advanced.pruning.mode !== "disabled") {
+        return { error: "Pruning must be disabled (must be an archival node)" };
+      }
+
       // if (!config.advanced.blockfilters.blockfilterindex) {
       //   return {
       //     error:
@@ -65,9 +66,9 @@ export const dependencies: T.ExpectedExports.dependencies = {
 
       config.rpc.enable = true;
 
-      // if (config.advanced.pruning.mode !== "disabled") {
-      //   config.advanced.pruning.mode = "disabled";
-      // }
+      if (config.advanced.pruning.mode !== "disabled") {
+        config.advanced.pruning.mode = "disabled";
+      }
 
       // config.advanced.blockfilters.blockfilterindex = true;
 
