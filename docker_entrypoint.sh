@@ -2,7 +2,7 @@
 set -ea
 
 _term() { 
-  echo "Caught SIGTERM signal!" 
+  echo "Caught SIGTERM signal!"
   kill -TERM "$backend_process" 2>/dev/null
   kill -TERM "$db_process" 2>/dev/null
   kill -TERM "$frontend_process" 2>/dev/null
@@ -32,7 +32,7 @@ else
 	mysql_install_db --user=mysql --ldata=/var/lib/mysql > /dev/null
 
 	if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-		MYSQL_ROOT_PASSWORD=`pwgen 16 1`
+		MYSQL_ROOT_PASSWORD=$(pwgen 16 1)
 		echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
 		export MYSQL_ROOT_PASSWORD
 	fi
@@ -41,12 +41,12 @@ else
 	MYSQL_USER=${MYSQL_USER:-"samourai"}
 	MYSQL_PASSWORD=${MYSQL_PASSWORD:-"samourai"}
 
-	tfile=`mktemp`
+	tfile=$(mktemp)
 	if [ ! -f "$tfile" ]; then
 		return 1
 	fi
 
-	cat << EOF > $tfile
+	cat << EOF > "$tfile"
 USE mysql;
 FLUSH PRIVILEGES ;
 GRANT ALL ON *.* TO 'root'@'%' identified by '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION ;
@@ -59,23 +59,31 @@ EOF
 	if [ "$MYSQL_DATABASE" != "" ]; then
 		echo "[i] Creating database: $MYSQL_DATABASE"
 		echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
-		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> "$tfile"
 
-	if [ "$MYSQL_USER" != "" ]; then
-		echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
-		echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
-		echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
-		echo "FLUSH PRIVILEGES;" >> $tfile
+		if [ "$MYSQL_USER" != "" ]; then
+			echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
+
+			{
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';"
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';"
+				echo "FLUSH PRIVILEGES;"
+			} >> "$tfile"
 		fi
 	fi
 
-	/usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < $tfile
+	/usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$tfile"
 
-	rm -f $tfile
+	rm -f "$tfile"
 
-	# install database
-	echo 'Creating tables'
-	sed "1iUSE \`$MYSQL_DATABASE\`;" /docker-entrypoint-initdb.d/1_db.sql.tpl | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0
+	for f in /docker-entrypoint-initdb.d/*; do
+		case "$f" in
+			*.sql)    echo "$0: running $f"; sed "1iUSE \`$MYSQL_DATABASE\`;" "$f" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0; echo ;;
+			*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | sed "1iUSE \`$MYSQL_DATABASE\`;" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
+			*)        echo "$0: ignoring or entrypoint initdb empty $f" ;;
+		esac
+		echo
+	done
 
 	echo
 	echo 'MySQL init process done. Starting mysqld...'
