@@ -19,16 +19,16 @@ RUN cd "$APP_DIR" && \
     npm install --omit=dev --build-from-source=false
 
 # Copy template files and create index.js
-COPY ./samourai-dojo/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/
-COPY ./samourai-dojo/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/
+COPY ./samourai-dojo/static/admin/conf/index-mainnet.js "$APP_DIR"/static/admin/conf/
+COPY ./samourai-dojo/static/admin/conf/index-testnet.js "$APP_DIR"/static/admin/conf/
 
 # Create index.js based on network type
 ARG COMMON_BTC_NETWORK=mainnet
-RUN mkdir -p /home/node/app/static/admin/conf && \
+RUN mkdir -p "$APP_DIR"/static/admin/conf && \
     if [ "$COMMON_BTC_NETWORK" != "mainnet" ]; then \
-    cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js; \
+    cp "$APP_DIR"/static/admin/conf/index-testnet.js "$APP_DIR"/static/admin/conf/index.js; \
     else \
-    cp /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js; \
+    cp "$APP_DIR"/static/admin/conf/index-mainnet.js "$APP_DIR"/static/admin/conf/index.js; \
     fi
 
 ##### Final stage
@@ -56,7 +56,8 @@ COPY --chown=node:node --chmod=754 ./samourai-dojo/docker/my-dojo/node/wait-for-
 
 RUN rm -f /etc/my.cnf.d/*
 COPY ./samourai-dojo/docker/my-dojo/mysql/mysql-low_mem.cnf /etc/my.cnf.d/mysql-dojo.cnf
-COPY ./samourai-dojo/db-scripts/ /docker-entrypoint-initdb.d
+RUN mkdir /docker-entrypoint-initdb.d
+COPY ./samourai-dojo/db-scripts/1_db.sql.tpl /docker-entrypoint-initdb.d/1_db.sql
 
 ### Nginx
 

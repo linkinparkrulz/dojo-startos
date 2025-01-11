@@ -126,7 +126,7 @@ Run the following commands to determine successful install:
 ```
 start-cli auth login
 # Enter your StartOS password
-start-cli --host https://server-name.local package install dojo-startos.s9pk
+start-cli --host https://server-name.local package install dojo.s9pk
 ```
 
 If you already have your `start-cli` config file setup with a default `host`, you can install simply by running:
