@@ -16,14 +16,6 @@ COPY ./samourai-dojo/. "$APP_DIR"
 RUN cd "$APP_DIR" && \
     npm install --omit=dev --build-from-source=false
 
-# Create index.js based on network type
-ARG COMMON_BTC_NETWORK=mainnet
-RUN if [ "$COMMON_BTC_NETWORK" != "mainnet" ]; then \
-    cp "$APP_DIR"/static/admin/conf/index-testnet.js "$APP_DIR"/static/admin/conf/index.js; \
-    else \
-    cp "$APP_DIR"/static/admin/conf/index-mainnet.js "$APP_DIR"/static/admin/conf/index.js; \
-    fi
-
 ##### Final stage
 
 FROM node:20-alpine3.20
@@ -54,7 +46,9 @@ COPY ./samourai-dojo/db-scripts/1_db.sql.tpl /docker-entrypoint-initdb.d/1_db.sq
 ### Nginx
 
 COPY ./samourai-dojo/docker/my-dojo/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./nginx-dojo.conf /etc/nginx/sites-enabled/dojo.conf
+COPY ./nginx/*.conf /etc/nginx/sites-available/
+RUN mkdir /etc/nginx/sites-enabled && \
+    ln -sf /etc/nginx/sites-available/mainnet.conf /etc/nginx/sites-enabled/dojo.conf
 
 ### Docker entrypoint
 
