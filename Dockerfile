@@ -6,7 +6,7 @@ ENV NODE_ENV=production
 ENV APP_DIR=/home/node/app
 
 RUN set -ex && \
-    apk --no-cache add gcc g++ make python3 curl cmake zeromq zeromq-dev
+    apk --no-cache add gcc g++ make python3 curl cmake zeromq-dev
 
 # Create app directory and copy source
 RUN mkdir "$APP_DIR"
@@ -49,7 +49,6 @@ COPY --chown=node:node --chmod=754 ./samourai-dojo/docker/my-dojo/node/wait-for-
 
 RUN rm -f /etc/my.cnf.d/*
 COPY ./samourai-dojo/docker/my-dojo/mysql/mysql-low_mem.cnf /etc/my.cnf.d/mysql-dojo.cnf
-RUN mkdir /docker-entrypoint-initdb.d
 COPY ./samourai-dojo/db-scripts/1_db.sql.tpl /docker-entrypoint-initdb.d/1_db.sql
 
 ### Nginx
