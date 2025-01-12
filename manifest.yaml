@@ -70,36 +70,25 @@ dependencies:
       type: "opt-out"
       how: Use the Bitcoin Core (default)
     description: Used to subscribe to new block events from a full archival node
-    config:
-      check:
-        type: script
-      auto-configure:
-        type: script
-    requires-runtime-config: true
   bitcoind-testnet:
     version: ">=0.21.1.2 <29.0.0"
     requirement:
       type: "opt-in"
       how: Use the Bitcoin Core Testnet4
     description: Used to subscribe to new block events from a full archival node (testnet)
-    config:
-      check:
-        type: script
-      auto-configure:
-        type: script
-    requires-runtime-config: true
   fulcrum:
     version: ">=1.11.0"
     requirement:
       type: "opt-in"
       how: Set Indexer to Fulcrum in the config
-    description: Used for fast scan of addresses and indexing for deep wallets. 
+    description: Used for fast scan of addresses and indexing for deep wallets.
   electrs:
-    version: ">=0"
+    version: ">=0.10.7"
     requirement:
       type: "opt-in"
-      how: Set Indexer to electrs in the config
+      how: Set Indexer to Electrs in the config
     description: A more stable, but less performant indexer.
+backup:
   create:
     type: docker
     image: compat
