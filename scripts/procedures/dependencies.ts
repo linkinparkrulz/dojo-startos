@@ -10,9 +10,6 @@ const matchBitcoindConfig = shape({
     })
   }),
   advanced: shape({
-    blockfilters: shape({
-      blockfilterindex: boolean,
-    }),
     pruning: shape({
       mode: string
     })
@@ -22,10 +19,6 @@ const matchBitcoindConfig = shape({
 
 const matchIndexerConfig = shape({
   type: string,  // "electrs" or "fulcrum"
-  rpc: shape({
-    enable: boolean,
-    port: number,
-  }),
 });
 
 export const dependencies: T.ExpectedExports.dependencies = {
@@ -50,17 +43,6 @@ export const dependencies: T.ExpectedExports.dependencies = {
         return { error: "Pruning must be disabled (must be an archival node)" };
       }
 
-      // if (!config.advanced.blockfilters.blockfilterindex) {
-      //   return {
-      //     error:
-      //       "Must have block filter index enabled for Run The Numbers to work",
-      //   };
-
-      // }
-      // if (config.rpc.advanced.threads < 4) {
-      //   return { error: "Must be greater than or equal to 4" };
-      // }
-
       return { result: null };
     },
     // deno-lint-ignore require-await
@@ -76,12 +58,6 @@ export const dependencies: T.ExpectedExports.dependencies = {
       if (config.advanced.pruning.mode !== "disabled") {
         config.advanced.pruning.mode = "disabled";
       }
-
-      // config.advanced.blockfilters.blockfilterindex = true;
-
-      // if (config.rpc.advanced.threads < 4) {
-      //   config.rpc.advanced.threads = 4;
-      // }
 
       return { result: config };
     },
@@ -107,17 +83,6 @@ export const dependencies: T.ExpectedExports.dependencies = {
         return { error: "Pruning must be disabled (must be an archival node)" };
       }
 
-      if (!config.advanced.blockfilters.blockfilterindex) {
-        return {
-          error:
-            "Must have block filter index enabled for Run The Numbers to work",
-        };
-      }
-
-      // if (config.rpc.advanced.threads < 4) {
-      //   return { error: "Must be greater than or equal to 4" };
-      // }
-
       return { result: null };
     },
     // deno-lint-ignore require-await
@@ -134,12 +99,6 @@ export const dependencies: T.ExpectedExports.dependencies = {
         config.advanced.pruning.mode = "disabled";
       }
 
-      config.advanced.blockfilters.blockfilterindex = true;
-
-      // if (config.rpc.advanced.threads < 4) {
-      //   config.rpc.advanced.threads = 4;
-      // }
-
       return { result: config };
     },
   },
@@ -149,9 +108,6 @@ export const dependencies: T.ExpectedExports.dependencies = {
       effects.info("check indexer");
       if (!matchIndexerConfig.test(config)) {
         return { error: "Indexer config is not the correct shape" };
-      }
-      if (!config.rpc.enable) {
-        return { error: "Must have RPC enabled" };
       }
       if (!["electrs", "fulcrum"].includes(config.type)) {
         return { error: "Indexer type must be either 'electrs' or 'fulcrum'" };
@@ -163,16 +119,10 @@ export const dependencies: T.ExpectedExports.dependencies = {
     async autoConfigure(effects, configInput) {
       effects.info("autoconfigure indexer");
       const config = matchIndexerConfig.unsafeCast(configInput);
-      config.rpc.enable = true;
 
       // Set default type if not specified
       if (!config.type) {
         config.type = "electrs";  // default to electrs
-      }
-
-      // Ensure port is set
-      if (!config.rpc.port) {
-        config.rpc.port = 50001;  // default electrum port
       }
 
       return { result: config };

@@ -79,7 +79,6 @@ EOF
 	for f in /docker-entrypoint-initdb.d/*; do
 		case "$f" in
 			*.sql)    echo "$0: running $f"; sed "1iUSE \`$MYSQL_DATABASE\`;" "$f" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0; echo ;;
-			*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | sed "1iUSE \`$MYSQL_DATABASE\`;" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
 			*)        echo "$0: ignoring or entrypoint initdb empty $f" ;;
 		esac
 		echo
@@ -94,16 +93,21 @@ fi
 /usr/bin/mysqld_safe --user=mysql --datadir='/var/lib/mysql' &
 db_process=$!
 
-# Config tor
+# Config tor and explorer
 TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
 mkdir -p /var/lib/tor/hsv3dojo
 echo "$TOR_ADDRESS" > /var/lib/tor/hsv3dojo/hostname
 
 if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
 	PAIRING_URL="http://$TOR_ADDRESS/test/v2"
+	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"
 else
 	PAIRING_URL="http://$TOR_ADDRESS/v2"
+	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"
 fi
+
+mkdir -p /var/lib/tor/hsv3explorer
+echo -n "$EXPLORER_ENDPOINT" > /var/lib/tor/hsv3explorer/hostname
 
 # Export service properties
 cat << EOF > /root/start9/stats.yaml
@@ -112,7 +116,7 @@ version: 2
 data:
   Pairing Code:
     type: string
-    value: '{"pairing":{"type":"dojo.api","version":"$DOJO_VERSION_TAG","apikey":"$NODE_API_KEY","url":"$PAIRING_URL"},"explorer":{"type":"explorer.oxt","url":"https://oxt.me"}}'
+    value: '{"pairing":{"type":"dojo.api","version":"$DOJO_VERSION_TAG","apikey":"$NODE_API_KEY","url":"$PAIRING_URL"},"explorer":{"type":"explorer.btc_rpc_explorer","url":"http://$EXPLORER_ENDPOINT"}}'
     description: Code for pairing your wallet with this Dojo
     copyable: true
     qr: true
@@ -121,20 +125,6 @@ data:
     type: string
     value: $(yq e '.admin-key' /root/start9/config.yaml)
     description: Key for accessing the admin/maintenance
-    copyable: true
-    qr: false
-    masked: true
-  API Key:
-    type: string
-    value: $(yq e '.api-key' /root/start9/config.yaml)
-    description: Key for accessing the services
-    copyable: true
-    qr: false
-    masked: true
-  JWT Secret:
-    type: string
-    value: $(yq e '.jwt-secret' /root/start9/config.yaml)
-    description: Secret used by the server for signing
     copyable: true
     qr: false
     masked: true
