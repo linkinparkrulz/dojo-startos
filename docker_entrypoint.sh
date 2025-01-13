@@ -121,20 +121,6 @@ data:
     copyable: true
     qr: false
     masked: true
-  API Key:
-    type: string
-    value: $(yq e '.api-key' /root/start9/config.yaml)
-    description: Key for accessing the services
-    copyable: true
-    qr: false
-    masked: true
-  JWT Secret:
-    type: string
-    value: $(yq e '.jwt-secret' /root/start9/config.yaml)
-    description: Secret used by the server for signing
-    copyable: true
-    qr: false
-    masked: true
 EOF
 
 # Start node
