@@ -31,11 +31,11 @@ scripts/embassy.js: $(TS_FILES)
 	deno run --allow-read --allow-write --allow-env --allow-net scripts/bundle.ts
 
 arm:
-	@rm -f docker-images/x86_64.tar
+	@rm -f docker-images/aarch64.tar
 	ARCH=aarch64 $(MAKE)
 
 x86:
-	@rm -f docker-images/aarch64.tar
+	@rm -f docker-images/x86_64.tar
 	ARCH=x86_64 $(MAKE)
 
 docker-images/aarch64.tar: Dockerfile docker_entrypoint.sh config.env nginx/mainnet.conf nginx/testnet.conf samourai-dojo
