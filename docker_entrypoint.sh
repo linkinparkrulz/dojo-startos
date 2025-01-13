@@ -94,9 +94,8 @@ fi
 /usr/bin/mysqld_safe --user=mysql --datadir='/var/lib/mysql' &
 db_process=$!
 
-TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
-
 # Config tor
+TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
 mkdir -p /var/lib/tor/hsv3dojo
 echo "$TOR_ADDRESS" > /var/lib/tor/hsv3dojo/hostname
 
