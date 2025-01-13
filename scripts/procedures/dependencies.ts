@@ -17,6 +17,7 @@ const matchBitcoindConfig = shape({
       mode: string
     })
   }),
+  'zmq-enabled': boolean
 });
 
 const matchIndexerConfig = shape({
@@ -39,6 +40,10 @@ export const dependencies: T.ExpectedExports.dependencies = {
 
       if (!config.rpc.enable) {
         return { error: "Must have RPC enabled" };
+      }
+
+      if (!config['zmq-enabled']) {
+	return { error: "Must have ZeroMQ enabled" };
       }
 
       if (config.advanced.pruning.mode !== "disabled") {
@@ -66,6 +71,8 @@ export const dependencies: T.ExpectedExports.dependencies = {
 
       config.rpc.enable = true;
 
+      config['zmq-enabled'] = true;
+
       if (config.advanced.pruning.mode !== "disabled") {
         config.advanced.pruning.mode = "disabled";
       }
@@ -92,6 +99,10 @@ export const dependencies: T.ExpectedExports.dependencies = {
         return { error: "Must have RPC enabled" };
       }
 
+      if (!config['zmq-enabled']) {
+	return { error: "Must have ZeroMQ enabled" };
+      }
+
       if (config.advanced.pruning.mode !== "disabled") {
         return { error: "Pruning must be disabled (must be an archival node)" };
       }
@@ -116,6 +127,8 @@ export const dependencies: T.ExpectedExports.dependencies = {
       const config = matchBitcoindConfig.unsafeCast(configInput);
 
       config.rpc.enable = true;
+
+      config['zmq-enabled'] = true;
 
       if (config.advanced.pruning.mode !== "disabled") {
         config.advanced.pruning.mode = "disabled";
