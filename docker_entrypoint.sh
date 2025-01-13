@@ -96,7 +96,11 @@ db_process=$!
 
 TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
 
-if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
+# Config tor
+mkdir -p /var/lib/tor/hsv3dojo
+echo "$TOR_ADDRESS" > /var/lib/tor/hsv3dojo/hostname
+
+if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
 	PAIRING_URL="http://$TOR_ADDRESS/test/v2"
 else
 	PAIRING_URL="http://$TOR_ADDRESS/v2"
@@ -138,15 +142,14 @@ data:
 EOF
 
 # Start node
-mkdir -p /var/lib/tor/hsv3dojo
-yq e '.tor-address' /root/start9/config.yaml > /var/lib/tor/hsv3dojo/hostname
-if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
+if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
 	cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js
 	ln -sf /etc/nginx/sites-available/testnet.conf /etc/nginx/sites-enabled/dojo.conf
 else
 	cp /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js
 	ln -sf /etc/nginx/sites-available/mainnet.conf /etc/nginx/sites-enabled/dojo.conf
 fi
+
 /home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
 backend_process=$!
 
