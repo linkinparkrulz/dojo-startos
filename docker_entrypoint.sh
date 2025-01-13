@@ -98,8 +98,10 @@ TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
 
 if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
 	PAIRING_URL="http://$TOR_ADDRESS/test/v2"
+	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"
 else
 	PAIRING_URL="http://$TOR_ADDRESS/v2"
+	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"
 fi
 
 # Export service properties
@@ -109,7 +111,7 @@ version: 2
 data:
   Pairing Code:
     type: string
-    value: '{"pairing":{"type":"dojo.api","version":"$DOJO_VERSION_TAG","apikey":"$NODE_API_KEY","url":"$PAIRING_URL"},"explorer":{"type":"explorer.oxt","url":"https://oxt.me"}}'
+    value: '{"pairing":{"type":"dojo.api","version":"$DOJO_VERSION_TAG","apikey":"$NODE_API_KEY","url":"$PAIRING_URL"},"explorer":{"type":"explorer.btc_rpc_explorer","url":"http://$EXPLORER_ENDPOINT"}}'
     description: Code for pairing your wallet with this Dojo
     copyable: true
     qr: true
@@ -126,6 +128,10 @@ EOF
 # Start node
 mkdir -p /var/lib/tor/hsv3dojo
 yq e '.tor-address' /root/start9/config.yaml > /var/lib/tor/hsv3dojo/hostname
+
+mkdir -p /var/lib/tor/hsv3explorer
+echo -n $EXPLORER_ENDPOINT > /var/lib/tor/hsv3explorer/hostname
+
 if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
 	cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js
 	ln -sf /etc/nginx/sites-available/testnet.conf /etc/nginx/sites-enabled/dojo.conf
