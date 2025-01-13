@@ -94,9 +94,59 @@ fi
 /usr/bin/mysqld_safe --user=mysql --datadir='/var/lib/mysql' &
 db_process=$!
 
+TOR_ADDRESS=$(yq e '.tor-address' /root/start9/config.yaml)
+
+if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
+	PAIRING_URL="http://$TOR_ADDRESS/test/v2"
+else
+	PAIRING_URL="http://$TOR_ADDRESS/v2"
+fi
+
+# Export service properties
+cat << EOF > /root/start9/stats.yaml
+---
+version: 2
+data:
+  Pairing Code:
+    type: string
+    value: '{"pairing":{"type":"dojo.api","version":"$DOJO_VERSION_TAG","apikey":"$NODE_API_KEY","url":"$PAIRING_URL"},"explorer":{"type":"explorer.oxt","url":"https://oxt.me"}}'
+    description: Code for pairing your wallet with this Dojo
+    copyable: true
+    qr: true
+    masked: true
+  Admin Key:
+    type: string
+    value: $(yq e '.admin-key' /root/start9/config.yaml)
+    description: Key for accessing the admin/maintenance
+    copyable: true
+    qr: false
+    masked: true
+  API Key:
+    type: string
+    value: $(yq e '.api-key' /root/start9/config.yaml)
+    description: Key for accessing the services
+    copyable: true
+    qr: false
+    masked: true
+  JWT Secret:
+    type: string
+    value: $(yq e '.jwt-secret' /root/start9/config.yaml)
+    description: Secret used by the server for signing
+    copyable: true
+    qr: false
+    masked: true
+EOF
+
 # Start node
 mkdir -p /var/lib/tor/hsv3dojo
 yq e '.tor-address' /root/start9/config.yaml > /var/lib/tor/hsv3dojo/hostname
+if [ $(yq e '.bitcoin-node.type' /root/start9/config.yaml) == "bitcoind-testnet" ]; then
+	cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js
+	ln -sf /etc/nginx/sites-available/testnet.conf /etc/nginx/sites-enabled/dojo.conf
+else
+	cp /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js
+	ln -sf /etc/nginx/sites-available/mainnet.conf /etc/nginx/sites-enabled/dojo.conf
+fi
 /home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
 backend_process=$!
 
