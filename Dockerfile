@@ -8,13 +8,11 @@ ENV APP_DIR=/home/node/app
 RUN set -ex && \
     apk --no-cache add gcc g++ make python3 curl cmake zeromq-dev
 
-# Create app directory
+# Create app directory and copy source
 RUN mkdir "$APP_DIR"
-
-# Copy app source files into APP_DIR
 COPY ./samourai-dojo/. "$APP_DIR"
 
-# Install node modules required by the app
+# Install node modules
 RUN cd "$APP_DIR" && \
     npm install --omit=dev --build-from-source=false
 
@@ -43,12 +41,14 @@ COPY --chown=node:node --chmod=754 ./samourai-dojo/docker/my-dojo/node/wait-for-
 
 RUN rm -f /etc/my.cnf.d/*
 COPY ./samourai-dojo/docker/my-dojo/mysql/mysql-low_mem.cnf /etc/my.cnf.d/mysql-dojo.cnf
-COPY ./samourai-dojo/db-scripts/ /docker-entrypoint-initdb.d
+COPY ./samourai-dojo/db-scripts/1_db.sql.tpl /docker-entrypoint-initdb.d/1_db.sql
 
 ### Nginx
 
 COPY ./samourai-dojo/docker/my-dojo/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./nginx-dojo.conf /etc/nginx/sites-enabled/dojo.conf
+COPY ./nginx/*.conf /etc/nginx/sites-available/
+RUN mkdir /etc/nginx/sites-enabled && \
+    ln -sf /etc/nginx/sites-available/mainnet.conf /etc/nginx/sites-enabled/dojo.conf
 
 ### Docker entrypoint
 
