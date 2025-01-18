@@ -25,7 +25,7 @@ ENV APP_DIR=/home/node/app
 
 RUN set -ex && \
     apk --no-cache add shadow bash && \
-    apk --no-cache add mariadb mariadb-client pwgen nginx yq
+    apk --no-cache add mariadb mariadb-client pwgen nginx yq curl
 
 ### Node
 
@@ -53,4 +53,9 @@ RUN mkdir /etc/nginx/sites-enabled && \
 ### Docker entrypoint
 
 COPY ./config.env /usr/local/bin/config.env
-COPY --chmod=754 ./docker_entrypoint.sh /usr/local/bin/docker_entrypoint.sh
+COPY --chmod=755 ./docker_entrypoint.sh /usr/local/bin/
+COPY --chmod=755 ./check-synced.sh /usr/local/bin/
+COPY --chmod=755 ./check-api.sh /usr/local/bin/
+COPY --chmod=755 ./check-mysql.sh /usr/local/bin/
+COPY --chmod=755 ./check-pushtx.sh /usr/local/bin/
+COPY --chmod=755 ./functions.sh /usr/local/bin/

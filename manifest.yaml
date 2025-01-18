@@ -29,14 +29,46 @@ hardware-requirements:
     - x86_64
     - aarch64
 health-checks:
-  web-ui:
-    name: Web Interface
-    success-message: Dojo UI is ready to visit in a web browser
-    type: script
   api:
     name: API
-    success-message: Dojo API is reachable and responsive.
-    type: script
+    success-message: Dojo API is online and ready for connections
+    type: docker
+    image: main
+    entrypoint: "check-api.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
+  mysql:
+    name: MySQL
+    success-message: MySQL is online and ready for connections
+    type: docker
+    image: main
+    entrypoint: "check-mysql.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
+  pushtx:
+    name: PushTx
+    success-message: Dojo PushTx API is online and ready for connections
+    type: docker
+    image: main
+    entrypoint: "check-pushtx.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
+  synced:
+    name: Synced
+    success-message: Dojo is synced with the network
+    type: docker
+    image: main
+    entrypoint: "check-synced.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
 config:
   get:
     type: script
