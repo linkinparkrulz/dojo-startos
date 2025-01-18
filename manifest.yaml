@@ -3,14 +3,14 @@ title: "Dojo"
 version: 1.26.1
 release-notes: Version v1.26.1
 license: MIT
-wrapper-repo: "https://github.com/Start9Labs/dojo-startos"
+wrapper-repo: "https://github.com/Start9Labs/ericpp/dojo-startos"
 upstream-repo: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 build: ["make"]
 description:
-  short: Your private backend server for Ashigaru, Samourai Wallet, Sparrow and other light wallets.
-  long: Dojo is the backend server for Ashigaru, Samourai Wallet, Sparrow and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
+  short: Your private backend server for Ashigaru, Samourai Wallet and other light wallets.
+  long: Dojo is the backend server for Ashigaru, Samourai Wallet and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
     Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
 assets:
   license: LICENSE
@@ -56,10 +56,10 @@ interfaces:
     tor-config:
       port-mapping:
         80: "9000"
-    lan-config:
-      443:
-        ssl: true
-        internal: 9000
+    #lan-config:
+    #   443:
+    #    ssl: true
+    #    internal: 9000
     ui: true
     protocols:
       - tcp

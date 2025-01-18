@@ -1,7 +1,7 @@
 # Dojo
 
 ## Overview
-Dojo is a powerful backend server designed for Ashigaru, Samourai Wallet, Sparrow, and other light wallets. It provides essential services for managing HD accounts, BIP47 addresses, balances, and transaction lists.
+Dojo is a powerful backend server designed for Ashigaru, Samourai Wallet, and other light wallets. It provides essential services for managing HD accounts, BIP47 addresses, balances, and transaction lists.
 
 ## Features
 - Database to track transactions
@@ -27,7 +27,7 @@ Dojo requires:
 5. Wait for initial synce with indexer of choice
 
 ### Connecting Wallets
-1. Open your supported wallet (Samourai, Sparrow, etc.)
+1. Open your supported wallet (Ashigaru, Samourai Wallet etc.)
 2. On the Dojo StartOS app page there is DEPENDENCIES, HEALTH CHECKS, MENU AND ADDITIONAL INFORMATION
 3. Scroll to MENU and click on PROPERTIES
 3. In Properties, you will see PAIRING CODE

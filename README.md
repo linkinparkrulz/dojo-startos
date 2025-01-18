@@ -4,7 +4,7 @@
 
 # Dojo for StartOS
 
-Dojo is self-hosted Bitcoin backend server that powers Ashigaru, Samourai Wallet, Sparrow and other light wallets. It's primarily focused on privacy and self-sovereignty. The Start OS version is a stripped down, dependancy based version of the original client maintained by Pavel The Coder. 
+Dojo is self-hosted Bitcoin backend server that powers Ashigaru, Samourai Wallet and other light wallets. It's primarily focused on privacy and self-sovereignty. The Start OS version is a stripped down, dependancy based version of the original client maintained by Pavel The Coder. 
 
 
 **Features**
