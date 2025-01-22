@@ -3,12 +3,10 @@
 
 source /usr/local/bin/config.env
 
-mysqladmin --user=$MYSQL_USER --password=$MYSQL_PASSWORD ping -h localhost 2>/dev/null
-
-if [ $? -eq 0 ]; then
+if mysqladmin --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" ping -h localhost 2>/dev/null; then
   # Online
   exit 0
-else
-  # Starting
-  exit 60
 fi
+
+# Starting
+exit 60
