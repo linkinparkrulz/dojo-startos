@@ -31,23 +31,23 @@ fi
 admin_key=$(yq -e '.admin-key' /root/start9/config.yaml 2>/dev/null)
 access_token=$(cat /run/secrets/access_token 2>/dev/null)
 
-if [[ $? -ne 0 ]] || [[ $(check_token "$access_token") -ne 0 ]]; then
+if [ -z "$access_token" ] || ! check_token "$access_token"; then
   access_token=$(do_authenticate "$admin_key")
 fi
 
-if [ $? -eq 0 ]; then
-  account_status=$(get_account_status "$access_token")
-  pushtx_status=$(get_pushtx_status "$access_token")
-  synced_blocks=$(echo "$account_status" | yq -e '.blocks' 2>/dev/null)
-  bitcoind_blocks=$(echo "$pushtx_status" | yq -e '.data.bitcoind.blocks' 2>/dev/null)
-  if [[ $synced_blocks -eq $bitcoind_blocks ]]; then
-    exit 0
-  else
-    sync_progress=$(printf "%.0f" $(bc -l <<<"$synced_blocks / $bitcoind_blocks * 100"))
-    echo "Syncing - $sync_progress% (Block #$synced_blocks)" >&2
-    exit 61
-  fi
-else
+if [ -z "$access_token" ]; then
   # Starting
   exit 60
+fi
+
+account_status=$(get_account_status "$access_token")
+pushtx_status=$(get_pushtx_status "$access_token")
+synced_blocks=$(echo "$account_status" | yq -e '.blocks' 2>/dev/null)
+bitcoind_blocks=$(echo "$pushtx_status" | yq -e '.data.bitcoind.blocks' 2>/dev/null)
+if [[ $synced_blocks -eq $bitcoind_blocks ]]; then
+  exit 0
+else
+  sync_progress=$(printf "%.0f" "$(bc -l <<<"$synced_blocks / $bitcoind_blocks * 100")")
+  echo "Syncing - $sync_progress% (Block #$synced_blocks)" >&2
+  exit 61
 fi
