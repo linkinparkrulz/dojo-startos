@@ -93,8 +93,8 @@ Now you are ready to build the `dojo-startos` package!
 Clone the project locally:
 
 ```
-git clone https://github.com/Start9Labs/dojo-startos-startos.git
-cd dojo-startos-startos
+git clone https://github.com/Start9Labs/dojo-startos.git
+cd dojo-startos
 git submodule update --init --recursive
 ```
 
