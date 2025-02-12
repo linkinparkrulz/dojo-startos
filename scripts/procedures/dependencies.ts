@@ -122,7 +122,7 @@ export const dependencies: T.ExpectedExports.dependencies = {
 
       // Set default type if not specified
       if (!config.type) {
-        config.type = "electrs";  // default to electrs
+        config.type = "fulcrum";  // default to fulcrum
       }
 
       return { result: config };
