@@ -100,8 +100,7 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "description": "BIP47 Payment Code used for admin authentication",
     "nullable": true,
     "copyable": true,
-    "masked": false,
-    "default": "",
+    "masked": false
   },
   "admin-key": {
     "type": "string",
