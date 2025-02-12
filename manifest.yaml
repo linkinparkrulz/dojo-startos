@@ -1,22 +1,21 @@
-id: dojo 
-title: Dojo
-version: 1.17.0
-release-notes: Initial release to embassyOS
-license: mit
-wrapper-repo: "https://github.com/Start9Labs/dojo-wrapper"
-upstream-repo: "https://code.samourai.io/dojo/samourai-dojo"
-support-site: "https://code.samourai.io/help"
-marketing-site: "https://ronindojo.io/"
+id: dojo
+title: "Dojo"
+version: 1.26.1
+release-notes: Version v1.26.1
+license: AGPLv3
+wrapper-repo: "https://github.com/Start9Labs/dojo-startos"
+upstream-repo: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
+support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
+marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 build: ["make"]
 description:
-  short: Your private backing server for Samourai Wallet. 
-  long: |
-    Samourai Dojo is the backing server for Samourai Wallet. Provides HD account & loose addresses (BIP47) balances & transactions lists. Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
+  short: Your private backend server for Ashigaru, Samourai Wallet and other light wallets.
+  long: Dojo is the backend server for Ashigaru, Samourai Wallet and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
+    Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
 assets:
-  license: LICENSE
-  icon: icon.svg
-  instructions: docs/instructions.md
-  docker-images: image.tar
+  license: LICENSE.md
+  icon: icon.png
+  instructions: instructions.md
 main:
   type: docker
   image: main
@@ -24,25 +23,52 @@ main:
   args: []
   mounts:
     main: /root
+    db: /var/lib/mysql
+hardware-requirements:
+  arch:
+    - x86_64
+    - aarch64
 health-checks:
-  web:
-    name: Dojo UI
-    success-message: dojo is ready to visit in a web browser
-    type: docker
-    image: main
-    entrypoint: "check-web.sh"
-    args: []
-    system: false
-    io-format: json
   api:
-    name: Dojo API
-    success-message: The dojo API is accessible and responding
+    name: API
+    success-message: Dojo API is online and ready for connections
     type: docker
     image: main
     entrypoint: "check-api.sh"
     args: []
+    inject: true
     system: false
-    io-format: json
+    io-format: yaml
+  mysql:
+    name: MySQL
+    success-message: MySQL is online and ready for connections
+    type: docker
+    image: main
+    entrypoint: "check-mysql.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
+  pushtx:
+    name: PushTx
+    success-message: Dojo PushTx API is online and ready for connections
+    type: docker
+    image: main
+    entrypoint: "check-pushtx.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
+  synced:
+    name: Synced
+    success-message: Dojo is synced with the network
+    type: docker
+    image: main
+    entrypoint: "check-synced.sh"
+    args: []
+    inject: true
+    system: false
+    io-format: yaml
 config:
   get:
     type: script
@@ -53,54 +79,87 @@ properties:
 volumes:
   main:
     type: data
-  compat:
-    type: assets 
+  db:
+    type: data
 interfaces:
   main:
     name: Dojo Web UI
     description: Specifies the interface to listen on for HTTP connections.
     tor-config:
       port-mapping:
-        8080: "8080"
-        8081: "8081"
-        8082: "8082"
-    lan-config:
-      443:
-        ssl: true
-        internal: 8080
-      8081:
-        ssl: true
-        internal: 80
-      8082:
-        ssl: true
-        internal: 80
+        80: "9000"
     ui: true
     protocols:
       - tcp
       - http
-dependencies: 
+dependencies:
   bitcoind:
-    version: ">=0.21.1.2 <=24.0.0"
-    requirement:
-      type: "opt-in"
-      how: Can alternatively configure proxy or bitcoin core  node.
-    description: Used to subscribe to new block events from a full archival node.
-    config:
-      check: 
-        type: script
-      auto-configure:
-        type: script
-  btc-rpc-proxy:
-    version: ">=0.3.2.1 <0.4.0"
+    version: ">=0.21.1.2 <29.0.0"
     requirement:
       type: "opt-out"
-      how: Can alternatively configure proxy or bitcoin core  node.
-    description: Used for RPC permissioning.
+      how: Use the Bitcoin Core (default)
+    description: Used to subscribe to new block events from a full archival node
     config:
       check:
         type: script
       auto-configure:
         type: script
+    requires-runtime-config: true
+  bitcoind-testnet:
+    version: ">=0.21.1.2 <29.0.0"
+    requirement:
+      type: "opt-in"
+      how: Use the Bitcoin Core Testnet4
+    description: Used to subscribe to new block events from a full archival node (testnet)
+    config:
+      check:
+        type: script
+      auto-configure:
+        type: script
+    requires-runtime-config: true
+  fulcrum:
+    version: ">=1.11.0"
+    requirement:
+      type: "opt-in"
+      how: Set Indexer to Fulcrum in the config
+    description: Used for fast scan of addresses and indexing for deep wallets.
+  electrs:
+    version: ">=0.10.7"
+    requirement:
+      type: "opt-in"
+      how: Set Indexer to Electrs in the config
+    description: A more stable, but less performant indexer.
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - create
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data
+      db: /var/lib/mysql
+    io-format: yaml
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data
+      db: /var/lib/mysql
+    io-format: yaml
 migrations:
   from:
     "*":
@@ -110,31 +169,3 @@ migrations:
     "*":
       type: script
       args: ["to"]
-backup:
-  create:
-    type: docker
-    image: compat
-    system: true 
-    entrypoint: compat 
-    args: 
-      - duplicity
-      - create
-      - /mnt/backup
-      - /root/data
-    mounts:
-      BACKUP: "/mnt/backup" 
-      main: "/root/data"
-  restore:
-    type: docker
-    image: compat
-    system: true
-    entrypoint: compat
-    args:
-      - duplicity
-      - restore
-      - /root/data
-      - /mnt/backup
-    mounts:
-      BACKUP: "/mnt/backup"
-      main: "/root/data"
-

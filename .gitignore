@@ -1,3 +1,5 @@
-jam.s9pk
-image.tar
+*.s9pk
 scripts/*.js
+.DS_Store
+.vscode/
+docker-images
