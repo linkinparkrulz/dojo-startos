@@ -88,7 +88,7 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
       "description":
         "The indexer you want to use for Dojo",
     },
-    "default": "fulcrum",
+    "default": "electrs",
     "variants": {
       "electrs": {},
       "fulcrum": {},
