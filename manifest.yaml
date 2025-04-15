@@ -3,7 +3,7 @@ title: "Dojo"
 version: 1.26.1
 release-notes: Version v1.26.1
 license: AGPLv3
-wrapper-repo: "https://github.com/Start9Labs/dojo-startos"
+wrapper-repo: "https://github.com/ericpp/dojo-startos"
 upstream-repo: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
 marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
