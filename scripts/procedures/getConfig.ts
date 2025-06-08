@@ -138,4 +138,55 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
       "len": 22,
     },
   },
+  "soroban-announce": {
+    "type": "boolean",
+    "name": "Soroban Network Announce",
+    "description": "Announce this node to the Soroban network (allows processing others' transactions)",
+    "nullable": false,
+    "default": false,
+  },
+  "pandotx-push": {
+    "type": "boolean",
+    "name": "PandoTx Push",
+    "description": "Push your transactions through random Soroban nodes for enhanced privacy",
+    "nullable": false,
+    "default": true,
+  },
+  "pandotx-process": {
+    "type": "boolean",
+    "name": "PandoTx Process",
+    "description": "Process and relay transactions from other Soroban nodes (requires Network Announce)",
+    "nullable": false,
+    "default": false,
+    "depends": {
+      "soroban-announce": true,
+    },
+  },
+  "pandotx-retries": {
+    "type": "number",
+    "name": "PandoTx Retries",
+    "description": "Maximum retry attempts for failed transaction pushes",
+    "nullable": false,
+    "default": 2,
+    "range": "[0,10]",
+    "integral": true,
+    "depends": {
+      "pandotx-push": true,
+    },
+  },
+  "pandotx-fallback-mode": {
+    "type": "enum",
+    "name": "PandoTx Fallback Mode",
+    "description": "Behavior when Soroban push fails",
+    "nullable": false,
+    "default": "convenient",
+    "values": ["convenient", "secure"],
+    "value-names": {
+      "convenient": "Convenient (fallback to local node)",
+      "secure": "Secure (fail if Soroban unavailable)",
+    },
+    "depends": {
+      "pandotx-push": true,
+    },
+  },
 });

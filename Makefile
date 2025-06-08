@@ -38,14 +38,14 @@ x86:
 	@rm -f docker-images/x86_64.tar
 	ARCH=x86_64 $(MAKE)
 
-docker-images/aarch64.tar: Dockerfile docker_entrypoint.sh config.env nginx/mainnet.conf nginx/testnet.conf samourai-dojo check-api.sh check-mysql.sh check-pushtx.sh check-synced.sh functions.sh
+docker-images/aarch64.tar: Dockerfile docker_entrypoint.sh config.env nginx/mainnet.conf nginx/testnet.conf samourai-dojo check-api.sh check-mysql.sh check-pushtx.sh check-synced.sh check-soroban.sh functions.sh
 ifeq ($(ARCH),x86_64)
 else
 	mkdir -p docker-images
 	docker buildx build --tag start9/$(PKG_ID)/main:$(PKG_VERSION) --build-arg ARCH=aarch64 --platform=linux/arm64 -o type=docker,dest=docker-images/aarch64.tar .
 endif
 
-docker-images/x86_64.tar: Dockerfile docker_entrypoint.sh config.env nginx/mainnet.conf nginx/testnet.conf samourai-dojo check-api.sh check-mysql.sh check-pushtx.sh check-synced.sh functions.sh
+docker-images/x86_64.tar: Dockerfile docker_entrypoint.sh config.env nginx/mainnet.conf nginx/testnet.conf samourai-dojo check-api.sh check-mysql.sh check-pushtx.sh check-synced.sh check-soroban.sh functions.sh
 ifeq ($(ARCH),aarch64)
 else
 	mkdir -p docker-images

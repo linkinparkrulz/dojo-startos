@@ -6,6 +6,7 @@ _term() {
   kill -TERM "$backend_process" 2>/dev/null
   kill -TERM "$db_process" 2>/dev/null
   kill -TERM "$frontend_process" 2>/dev/null
+  kill -TERM "$soroban_process" 2>/dev/null
 }
 
 source /usr/local/bin/config.env
@@ -146,9 +147,32 @@ backend_process=$!
 /home/node/app/wait-for-it.sh 127.0.0.1:8080 --timeout=720 --strict -- nginx &
 frontend_process=$!
 
+# Start Soroban if enabled
+if [ "$SOROBAN_INSTALL" == "on" ]; then
+    echo "Starting Soroban service..."
+    
+    # Create Soroban onion directory if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
+        mkdir -p /var/lib/tor/hsv3soroban
+        echo "soroban$(date +%s).onion" > /var/lib/tor/hsv3soroban/hostname
+    fi
+    
+    # Start Soroban as the soroban user
+    su -s /bin/bash soroban -c '/usr/local/bin/soroban-restart.sh' &
+    soroban_process=$!
+    echo "Soroban started with PID: $soroban_process"
+else
+    echo "Soroban is disabled (SOROBAN_INSTALL=$SOROBAN_INSTALL)"
+    soroban_process=""
+fi
+
 echo 'All processes initalized'
 
 # SIGTERM HANDLING
 trap _term SIGTERM
 
-wait -n $db_process $backend_process $frontend_process
+if [ -n "$soroban_process" ]; then
+    wait -n $db_process $backend_process $frontend_process $soroban_process
+else
+    wait -n $db_process $backend_process $frontend_process
+fi
