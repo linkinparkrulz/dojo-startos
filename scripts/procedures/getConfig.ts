@@ -158,9 +158,6 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "description": "Process and relay transactions from other Soroban nodes (requires Network Announce)",
     "nullable": false,
     "default": false,
-    "depends": {
-      "soroban-announce": true,
-    },
   },
   "pandotx-retries": {
     "type": "number",
@@ -170,9 +167,6 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "default": 2,
     "range": "[0,10]",
     "integral": true,
-    "depends": {
-      "pandotx-push": true,
-    },
   },
   "pandotx-fallback-mode": {
     "type": "enum",
@@ -184,9 +178,6 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "value-names": {
       "convenient": "Convenient (fallback to local node)",
       "secure": "Secure (fail if Soroban unavailable)",
-    },
-    "depends": {
-      "pandotx-push": true,
     },
   },
 });
