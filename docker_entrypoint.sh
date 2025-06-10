@@ -21,9 +21,15 @@ else
 	chown -R mysql:mysql /run/mysqld
 fi
 
+MYSQL_DATABASE=${MYSQL_DATABASE:-"samourai-main"}
+MYSQL_USER=${MYSQL_USER:-"samourai"}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-"samourai"}
+
 if [ -d /var/lib/mysql/mysql ]; then
-	echo "[i] MySQL directory already present, skipping creation"
+	echo "[i] MySQL directory already present, running update"
 	chown -R mysql:mysql /var/lib/mysql
+
+	sed "1iUSE \`$MYSQL_DATABASE\`;" /docker-entrypoint-initdb.d/2_update.sql | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0
 else
 	echo "[i] MySQL data directory not found, creating initial DBs"
 
@@ -37,10 +43,6 @@ else
 		echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
 		export MYSQL_ROOT_PASSWORD
 	fi
-
-	MYSQL_DATABASE=${MYSQL_DATABASE:-"samourai-main"}
-	MYSQL_USER=${MYSQL_USER:-"samourai"}
-	MYSQL_PASSWORD=${MYSQL_PASSWORD:-"samourai"}
 
 	tfile=$(mktemp)
 	if [ ! -f "$tfile" ]; then
