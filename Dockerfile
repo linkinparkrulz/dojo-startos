@@ -94,6 +94,7 @@ COPY --chown=node:node --chmod=754 ./samourai-dojo/docker/my-dojo/node/wait-for-
 RUN rm -f /etc/my.cnf.d/*
 COPY ./samourai-dojo/docker/my-dojo/mysql/mysql-low_mem.cnf /etc/my.cnf.d/mysql-dojo.cnf
 COPY ./samourai-dojo/db-scripts/1_db.sql /docker-entrypoint-initdb.d/1_db.sql
+COPY ./samourai-dojo/db-scripts/2_update.sql /docker-entrypoint-initdb.d/2_update.sql
 
 ### Tor
 
