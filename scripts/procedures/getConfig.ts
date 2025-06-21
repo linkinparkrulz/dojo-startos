@@ -139,11 +139,31 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     },
   },
   "soroban-announce": {
-    "type": "boolean",
+    "type": "union",
     "name": "Soroban Network Announce",
-    "description": "Announce this node to the Soroban network (allows processing others' transactions)",
-    "nullable": false,
-    "default": false,
+    "description": "Configure Soroban network participation",
+    "tag": {
+      "id": "enabled",
+      "name": "Soroban Network Announce",
+      "variant-names": {
+        "disabled": "Disabled",
+        "enabled": "Enabled"
+      },
+      "description": "Enable to participate in the Soroban network"
+    },
+    "default": "disabled",
+    "variants": {
+      "disabled": {},
+      "enabled": {
+        "pandotx-process": {
+          "type": "boolean",
+          "name": "PandoTx Process",
+          "description": "Process and relay transactions from other Soroban nodes",
+          "nullable": false,
+          "default": false
+        }
+      }
+    }
   },
   "pandotx-push": {
     "type": "boolean",
@@ -151,13 +171,6 @@ export const getConfig: T.ExpectedExports.getConfig = compat.getConfig({
     "description": "Push your transactions through random Soroban nodes for enhanced privacy",
     "nullable": false,
     "default": true,
-  },
-  "pandotx-process": {
-    "type": "boolean",
-    "name": "PandoTx Process",
-    "description": "Process and relay transactions from other Soroban nodes (requires Network Announce)",
-    "nullable": false,
-    "default": false,
   },
   "pandotx-retries": {
     "type": "number",

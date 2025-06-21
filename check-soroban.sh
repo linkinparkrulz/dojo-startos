@@ -39,11 +39,16 @@ if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
     exit 61
   fi
   
+  # Add .onion suffix if missing
+  if [[ "$ONION_HOSTNAME" != *.onion ]]; then
+    ONION_HOSTNAME="${ONION_HOSTNAME}.onion"
+  fi
+  
   # Try to reach the RPC endpoint through the onion service
   RPC_API_URL="http://${ONION_HOSTNAME}/rpc"
   SOROBAN_ANNOUNCE_KEY=$([[ "$COMMON_BTC_NETWORK" == "testnet" ]] && echo "$SOROBAN_ANNOUNCE_KEY_TEST" || echo "$SOROBAN_ANNOUNCE_KEY_MAIN")
   
-  if ! curl -s -f --max-time 15 --retry 1 --retry-delay 5 \
+  if ! curl -s -f --max-time 300 --retry 30 --retry-delay 10 \
     -X POST -H 'Content-Type: application/json' \
     -d "{ \"jsonrpc\": \"2.0\", \"id\": 42, \"method\":\"directory.List\", \"params\": [{ \"Name\": \"$SOROBAN_ANNOUNCE_KEY\"}] }" \
     --proxy socks5h://localhost:9050 "$RPC_API_URL" > /dev/null 2>&1; then

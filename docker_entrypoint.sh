@@ -133,15 +133,32 @@ data:
     masked: true
 EOF
 
-# Start node
-if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
-	cp /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js
-	ln -sf /etc/nginx/sites-available/testnet.conf /etc/nginx/sites-enabled/dojo.conf
+# Start Soroban if enabled
+if [ "$SOROBAN_INSTALL" == "on" ]; then
+    echo "Starting Soroban service..."
+    
+    # Create Soroban onion directory if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
+        # Create and set up Tor directory for Soroban
+        mkdir -p /var/lib/tor/hsv3soroban
+        # Create empty hostname file that Tor will populate when ready
+        touch /var/lib/tor/hsv3soroban/hostname
+        chown -R soroban:soroban /var/lib/tor/hsv3soroban
+        chmod 755 /var/lib/tor/hsv3soroban
+        chmod 644 /var/lib/tor/hsv3soroban/hostname
+    fi
+    
+    # Start Soroban as the soroban user
+    su -s /bin/bash soroban -c '/usr/local/bin/soroban-restart.sh' &
+    soroban_process=$!
+    echo "Soroban started with PID: $soroban_process"
+
 else
-	cp /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js
-	ln -sf /etc/nginx/sites-available/mainnet.conf /etc/nginx/sites-enabled/dojo.conf
+    echo "Soroban is disabled (SOROBAN_INSTALL=$SOROBAN_INSTALL)"
+    soroban_process=""
 fi
 
+# Start node services
 /home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
 backend_process=$!
 
@@ -149,26 +166,7 @@ backend_process=$!
 /home/node/app/wait-for-it.sh 127.0.0.1:8080 --timeout=720 --strict -- nginx &
 frontend_process=$!
 
-# Start Soroban if enabled
-if [ "$SOROBAN_INSTALL" == "on" ]; then
-    echo "Starting Soroban service..."
-    
-    # Create Soroban onion directory if announce is enabled
-    if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
-        mkdir -p /var/lib/tor/hsv3soroban
-        echo "soroban$(date +%s).onion" > /var/lib/tor/hsv3soroban/hostname
-    fi
-    
-    # Start Soroban as the soroban user
-    su -s /bin/bash soroban -c '/usr/local/bin/soroban-restart.sh' &
-    soroban_process=$!
-    echo "Soroban started with PID: $soroban_process"
-else
-    echo "Soroban is disabled (SOROBAN_INSTALL=$SOROBAN_INSTALL)"
-    soroban_process=""
-fi
-
-echo 'All processes initalized'
+echo 'All processes initialized'
 
 # SIGTERM HANDLING
 trap _term SIGTERM
