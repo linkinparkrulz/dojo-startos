@@ -104,7 +104,7 @@ interfaces:
       - http
 dependencies:
   bitcoind:
-    version: ">=0.21.1.2 <29.0.0"
+    version: ">=0.21.1.2 <31.0.0"
     requirement:
       type: "opt-out"
       how: Use the Bitcoin Core (default)
@@ -116,7 +116,7 @@ dependencies:
         type: script
     requires-runtime-config: true
   bitcoind-testnet:
-    version: ">=0.21.1.2 <29.0.0"
+    version: ">=0.21.1.2 <31.0.0"
     requirement:
       type: "opt-in"
       how: Use the Bitcoin Core Testnet4
