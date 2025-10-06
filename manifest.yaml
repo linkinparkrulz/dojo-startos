@@ -1,16 +1,17 @@
 id: dojo
-title: "Dojo"
-version: 1.27.0.0
-release-notes: Version v1.27.0
+title: 'Dojo'
+version: 1.28.0.0
+release-notes: Version v1.28.0
 license: AGPLv3
-wrapper-repo: "https://github.com/ericpp/dojo-startos"
-upstream-repo: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
-support-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
-marketing-site: "https://github.com/Dojo-Open-Source-Project/samourai-dojo"
-build: ["make"]
+wrapper-repo: 'https://github.com/ericpp/dojo-startos'
+upstream-repo: 'https://github.com/Dojo-Open-Source-Project/samourai-dojo'
+support-site: 'https://github.com/Dojo-Open-Source-Project/samourai-dojo'
+marketing-site: 'https://github.com/Dojo-Open-Source-Project/samourai-dojo'
+build: ['make']
 description:
   short: Your private backend server for Ashigaru, Samourai Wallet and other light wallets.
-  long: Dojo is the backend server for Ashigaru, Samourai Wallet and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
+  long:
+    Dojo is the backend server for Ashigaru, Samourai Wallet and other light wallets. It provides HD account & loose addresses (BIP47) balances & transactions lists.
     Provides unspent output lists to the wallet. PushTX endpoint broadcasts transactions through the backing bitcoind node.
 assets:
   license: LICENSE.md
@@ -19,7 +20,7 @@ assets:
 main:
   type: docker
   image: main
-  entrypoint: "docker_entrypoint.sh"
+  entrypoint: 'docker_entrypoint.sh'
   args: []
   mounts:
     main: /root
@@ -34,7 +35,7 @@ health-checks:
     success-message: Dojo API is online and ready for connections
     type: docker
     image: main
-    entrypoint: "check-api.sh"
+    entrypoint: 'check-api.sh'
     args: []
     inject: true
     system: false
@@ -44,7 +45,7 @@ health-checks:
     success-message: MySQL is online and ready for connections
     type: docker
     image: main
-    entrypoint: "check-mysql.sh"
+    entrypoint: 'check-mysql.sh'
     args: []
     inject: true
     system: false
@@ -54,7 +55,7 @@ health-checks:
     success-message: Dojo PushTx API is online and ready for connections
     type: docker
     image: main
-    entrypoint: "check-pushtx.sh"
+    entrypoint: 'check-pushtx.sh'
     args: []
     inject: true
     system: false
@@ -64,7 +65,7 @@ health-checks:
     success-message: Dojo is synced with the network
     type: docker
     image: main
-    entrypoint: "check-synced.sh"
+    entrypoint: 'check-synced.sh'
     args: []
     inject: true
     system: false
@@ -74,7 +75,7 @@ health-checks:
     success-message: Soroban P2P relay service is online and ready
     type: docker
     image: main
-    entrypoint: "check-soroban.sh"
+    entrypoint: 'check-soroban.sh'
     args: []
     inject: true
     system: false
@@ -97,16 +98,16 @@ interfaces:
     description: Specifies the interface to listen on for HTTP connections.
     tor-config:
       port-mapping:
-        80: "9000"
+        80: '9000'
     ui: true
     protocols:
       - tcp
       - http
 dependencies:
   bitcoind:
-    version: ">=0.21.1.2 <31.0.0"
+    version: '>=0.21.1.2 <31.0.0'
     requirement:
-      type: "opt-out"
+      type: 'opt-out'
       how: Use the Bitcoin Core (default)
     description: Used to subscribe to new block events from a full archival node
     config:
@@ -116,9 +117,9 @@ dependencies:
         type: script
     requires-runtime-config: true
   bitcoind-testnet:
-    version: ">=0.21.1.2 <31.0.0"
+    version: '>=0.21.1.2 <31.0.0'
     requirement:
-      type: "opt-in"
+      type: 'opt-in'
       how: Use the Bitcoin Core Testnet4
     description: Used to subscribe to new block events from a full archival node (testnet)
     config:
@@ -128,15 +129,15 @@ dependencies:
         type: script
     requires-runtime-config: true
   fulcrum:
-    version: ">=1.11.0"
+    version: '>=1.11.0'
     requirement:
-      type: "opt-in"
+      type: 'opt-in'
       how: Set Indexer to Fulcrum in the config
     description: Used for fast scan of addresses and indexing for deep wallets.
   electrs:
-    version: ">=0.10.7"
+    version: '>=0.10.7'
     requirement:
-      type: "opt-in"
+      type: 'opt-in'
       how: Set Indexer to Electrs in the config
     description: A more stable, but less performant indexer.
 backup:
@@ -172,10 +173,10 @@ backup:
     io-format: yaml
 migrations:
   from:
-    "*":
+    '*':
       type: script
-      args: ["from"]
+      args: ['from']
   to:
-    "*":
+    '*':
       type: script
-      args: ["to"]
+      args: ['to']
