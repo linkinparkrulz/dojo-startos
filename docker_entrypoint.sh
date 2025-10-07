@@ -104,9 +104,13 @@ echo "$TOR_ADDRESS" > /var/lib/tor/hsv3dojo/hostname
 if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
 	PAIRING_URL="http://$TOR_ADDRESS/test/v2"
 	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"
+	# Create symlink for testnet admin config
+	ln -sf /home/node/app/static/admin/conf/index-testnet.js /home/node/app/static/admin/conf/index.js
 else
 	PAIRING_URL="http://$TOR_ADDRESS/v2"
 	EXPLORER_ENDPOINT="mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"
+	# Create symlink for mainnet admin config
+	ln -sf /home/node/app/static/admin/conf/index-mainnet.js /home/node/app/static/admin/conf/index.js
 fi
 
 mkdir -p /var/lib/tor/hsv3explorer
