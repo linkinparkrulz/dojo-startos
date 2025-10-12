@@ -103,6 +103,16 @@ interfaces:
     protocols:
       - tcp
       - http
+  soroban:
+    name: Soroban Interface
+    description: Web interface for Soroban
+    tor-config:
+      port-mapping:
+        80: '4242'
+    ui: true
+    protocols:
+      - tcp
+      - http
 dependencies:
   bitcoind:
     version: '>=0.21.1.2 <31.0.0'

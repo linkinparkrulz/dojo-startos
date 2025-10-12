@@ -6,6 +6,7 @@ _term() {
   kill -TERM "$backend_process" 2>/dev/null
   kill -TERM "$db_process" 2>/dev/null
   kill -TERM "$frontend_process" 2>/dev/null
+  kill -TERM "$soroban_process" 2>/dev/null
 }
 
 source /usr/local/bin/config.env
@@ -143,6 +144,92 @@ data:
     masked: true
 EOF
 
+# Start Soroban (if enabled)
+if [ "$SOROBAN_INSTALL" = "on" ]; then
+    echo "[i] Starting Soroban..."
+    
+    # Determine network-specific configuration
+    if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
+        SOROBAN_DOMAIN="$SOROBAN_DOMAIN_TEST"
+        SOROBAN_P2P_ROOM="$SOROBAN_P2P_ROOM_TEST"
+        SOROBAN_P2P_BOOTSTRAP="$SOROBAN_P2P_BOOTSTRAP_TEST"
+        SOROBAN_ANNOUNCE_KEY="$SOROBAN_ANNOUNCE_KEY_TEST"
+    else
+        SOROBAN_DOMAIN="$SOROBAN_DOMAIN_MAIN"
+        SOROBAN_P2P_ROOM="$SOROBAN_P2P_ROOM_MAIN"
+        SOROBAN_P2P_BOOTSTRAP="$SOROBAN_P2P_BOOTSTRAP_MAIN"
+        SOROBAN_ANNOUNCE_KEY="$SOROBAN_ANNOUNCE_KEY_MAIN"
+    fi
+    
+    # Create Soroban directories
+    mkdir -p /home/soroban/data
+    chown -R soroban:soroban /home/soroban/data
+    
+    # Setup Soroban Tor hidden service if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" = "on" ]; then
+        mkdir -p /var/lib/tor/hsv3soroban
+        chown -R soroban:soroban /var/lib/tor/hsv3soroban
+        
+        # Create Tor config for Soroban
+        cat > /home/soroban/.torrc <<EOF
+DataDirectory /var/lib/tor/hsv3soroban
+HiddenServiceDir /var/lib/tor/hsv3soroban
+HiddenServicePort 80 ${NET_DOJO_SOROBAN_IPV4}:${SOROBAN_PORT}
+EOF
+        
+        chown soroban:soroban /home/soroban/.torrc
+        
+        # Start Tor for Soroban as the soroban user
+        su -s /bin/sh soroban -c "tor -f /home/soroban/.torrc > /home/soroban/data/tor.log 2>&1 &"
+        
+        # Wait for Tor to generate hostname
+        echo "[i] Waiting for Tor to generate Soroban hidden service..."
+        for i in {1..30}; do
+            if [ -f /var/lib/tor/hsv3soroban/hostname ]; then
+                echo "[i] Soroban hidden service ready: $(cat /var/lib/tor/hsv3soroban/hostname)"
+                break
+            fi
+            sleep 1
+        done
+    fi
+    
+    # Start Soroban server as the soroban user
+    SOROBAN_CMD="soroban-server \
+        --hostname=${NET_DOJO_SOROBAN_IPV4} \
+        --port=${SOROBAN_PORT} \
+        --log=${SOROBAN_LOG_LEVEL}"
+    
+    # Add P2P configuration
+    if [ -n "$SOROBAN_P2P_BOOTSTRAP" ]; then
+        SOROBAN_CMD="$SOROBAN_CMD \
+            --p2pListenPort=${SOROBAN_P2P_LISTEN_PORT} \
+            --p2pRoom=${SOROBAN_P2P_ROOM} \
+            --p2pBootstrap=${SOROBAN_P2P_BOOTSTRAP}"
+    fi
+    
+    # Add Tor configuration if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" = "on" ]; then
+        SOROBAN_CMD="$SOROBAN_CMD --withTor=true"
+    fi
+    
+    # Start Soroban
+    su -s /bin/sh soroban -c "$SOROBAN_CMD > /home/soroban/data/soroban.log 2>&1 &"
+    soroban_process=$!
+    
+    echo "[i] Soroban started with PID $soroban_process"
+    
+    # Wait a moment for Soroban to initialize
+    sleep 2
+    
+    # Verify Soroban is listening
+    if nc -z ${NET_DOJO_SOROBAN_IPV4} ${SOROBAN_PORT} 2>/dev/null; then
+        echo "[i] Soroban is listening on port ${SOROBAN_PORT}"
+    else
+        echo "[!] Warning: Soroban may not be listening on port ${SOROBAN_PORT}"
+        echo "[!] Check logs at /home/soroban/data/soroban.log"
+    fi
+fi
+
 # Start node services
 /home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
 backend_process=$!
@@ -156,4 +243,4 @@ echo 'All processes initialized'
 # SIGTERM HANDLING
 trap _term SIGTERM
 
-wait -n $db_process $backend_process $frontend_process
+wait -n $db_process $backend_process $frontend_process $soroban_process
