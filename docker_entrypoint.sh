@@ -26,26 +26,26 @@ MYSQL_USER=${MYSQL_USER:-"samourai"}
 MYSQL_PASSWORD=${MYSQL_PASSWORD:-"samourai"}
 
 if [ ! -f /var/lib/mysql/.dojo_db_initialized ]; then
-	echo "[i] MySQL data directory not found or not initialized, creating initial DBs"
+    echo "[i] MySQL data directory not found or not initialized, creating initial DBs"
 
-	mkdir -p /var/lib/mysql
-	chown -R mysql:mysql /var/lib/mysql
-	touch /var/lib/mysql/.dojo_db_initialized
+    mkdir -p /var/lib/mysql
+    chown -R mysql:mysql /var/lib/mysql
+    touch /var/lib/mysql/.dojo_db_initialized
 
-	mysql_install_db --user=mysql --ldata=/var/lib/mysql > /dev/null
+    mysql_install_db --user=mysql --ldata=/var/lib/mysql > /dev/null
 
-	if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-		MYSQL_ROOT_PASSWORD=$(pwgen 16 1)
-		echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
-		export MYSQL_ROOT_PASSWORD
-	fi
+    if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
+        MYSQL_ROOT_PASSWORD=$(pwgen 16 1)
+        echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
+        export MYSQL_ROOT_PASSWORD
+    fi
 
-	tfile=$(mktemp)
-	if [ ! -f "$tfile" ]; then
-		return 1
-	fi
+    tfile=$(mktemp)
+    if [ ! -f "$tfile" ]; then
+        return 1
+    fi
 
-	cat << EOF > "$tfile"
+    cat << EOF > "$tfile"
 USE mysql;
 FLUSH PRIVILEGES ;
 GRANT ALL ON *.* TO 'root'@'%' identified by '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION ;
@@ -55,35 +55,43 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-	if [ "$MYSQL_DATABASE" != "" ]; then
-		echo "[i] Creating database: $MYSQL_DATABASE"
-		echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
-		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> "$tfile"
+    if [ "$MYSQL_DATABASE" != "" ]; then
+        echo "[i] Creating database: $MYSQL_DATABASE"
+        echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
+        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> "$tfile"
 
-		if [ "$MYSQL_USER" != "" ]; then
-			echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
+        if [ "$MYSQL_USER" != "" ]; then
+            echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
 
-			{
-				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';"
-				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';"
-				echo "FLUSH PRIVILEGES;"
-			} >> "$tfile"
-		fi
-	fi
+            {
+                echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';"
+                echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';"
+                echo "FLUSH PRIVILEGES;"
+            } >> "$tfile"
+        fi
+    fi
 
-	/usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$tfile"
+    /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$tfile"
 
-	rm -f "$tfile"
-	echo
-	echo 'MySQL init process done. Starting mysqld...'
-	echo
+    rm -f "$tfile"
+    echo
+    echo 'MySQL init process done. Starting mysqld...'
+    echo
 
-	# Run initial SQL scripts
-	sed "1iUSE \`$MYSQL_DATABASE\`;" /docker-entrypoint-initdb.d/2_update.sql | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0
+    # Run initial SQL scripts
+    sed "1iUSE \`$MYSQL_DATABASE\`;" /docker-entrypoint-initdb.d/2_update.sql | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0
 
-	touch /var/lib/mysql/.dojo_db_initialized
+    for f in /docker-entrypoint-initdb.d/*; do
+        case "$f" in
+            *.sql)    echo "$0: running $f"; sed "1iUSE \`$MYSQL_DATABASE\`;" "$f" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0; echo ;;
+            *)        echo "$0: ignoring or entrypoint initdb empty $f" ;;
+        esac
+        echo
+    done
+
+    touch /var/lib/mysql/.dojo_db_initialized
 else
-	echo "[i] MySQL data directory already initialized, skipping initial DB creation."
+    echo "[i] MySQL data directory already initialized, skipping initial DB creation."
 fi
 
 # Start mysql
@@ -142,37 +150,159 @@ data:
     masked: true
 EOF
 
-# Start Soroban if enabled
-echo "[i] Checking Soroban configuration..."
-echo "[i] SOROBAN_INSTALL=$SOROBAN_INSTALL"
-echo "[i] SOROBAN_ANNOUNCE=$SOROBAN_ANNOUNCE"
-
+# Start Soroban (if enabled)
 if [ "$SOROBAN_INSTALL" = "on" ]; then
-	echo "[i] Starting Soroban process as soroban user..."
-	mkdir -p $(dirname $SOROBAN_ONION_FILE)
-	chown -R soroban:soroban $(dirname $SOROBAN_ONION_FILE)
-	runuser -u soroban -- /usr/local/bin/soroban-restart.sh &
-	soroban_process=$!
-else
-	echo "[i] Soroban is disabled"
-	soroban_process=""
+    echo "[i] Starting Soroban..."
+    
+    # Determine network-specific configuration
+    if [ "$COMMON_BTC_NETWORK" = "testnet" ]; then
+        SOROBAN_DOMAIN="$SOROBAN_DOMAIN_TEST"
+        SOROBAN_P2P_ROOM="$SOROBAN_P2P_ROOM_TEST"
+        SOROBAN_P2P_BOOTSTRAP="$SOROBAN_P2P_BOOTSTRAP_TEST"
+        SOROBAN_ANNOUNCE_KEY="$SOROBAN_ANNOUNCE_KEY_TEST"
+    else
+        SOROBAN_DOMAIN="$SOROBAN_DOMAIN_MAIN"
+        SOROBAN_P2P_ROOM="$SOROBAN_P2P_ROOM_MAIN"
+        SOROBAN_P2P_BOOTSTRAP="$SOROBAN_P2P_BOOTSTRAP_MAIN"
+        SOROBAN_ANNOUNCE_KEY="$SOROBAN_ANNOUNCE_KEY_MAIN"
+    fi
+    
+    # Create Soroban directories
+    mkdir -p /home/soroban/data
+    chown -R soroban:soroban /home/soroban/data
+    
+    # Setup Soroban Tor hidden service if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" = "on" ]; then
+        mkdir -p /var/lib/tor/hsv3soroban
+        chown -R soroban:soroban /var/lib/tor/hsv3soroban
+        
+        # Create Tor config for Soroban
+        cat > /home/soroban/.torrc <<EOF
+DataDirectory /var/lib/tor/hsv3soroban
+HiddenServiceDir /var/lib/tor/hsv3soroban
+HiddenServicePort 80 ${NET_DOJO_SOROBAN_IPV4}:${SOROBAN_PORT}
+EOF
+        
+        chown soroban:soroban /home/soroban/.torrc
+        
+        # Start Tor for Soroban as the soroban user
+        su -s /bin/sh soroban -c "tor -f /home/soroban/.torrc > /home/soroban/data/tor.log 2>&1 &"
+        
+        # Wait for Tor to generate hostname
+        echo "[i] Waiting for Tor to generate Soroban hidden service..."
+        for i in {1..30}; do
+            if [ -f /var/lib/tor/hsv3soroban/hostname ]; then
+                echo "[i] Soroban hidden service ready: $(cat /var/lib/tor/hsv3soroban/hostname)"
+                break
+            fi
+            sleep 1
+        done
+    fi
+    
+    # Start Soroban server as the soroban user
+    SOROBAN_CMD="soroban-server \
+        --hostname=${NET_DOJO_SOROBAN_IPV4} \
+        --port=${SOROBAN_PORT} \
+        --log=${SOROBAN_LOG_LEVEL}"
+    
+    # Add P2P configuration
+    if [ -n "$SOROBAN_P2P_BOOTSTRAP" ]; then
+        SOROBAN_CMD="$SOROBAN_CMD \
+            --p2pListenPort=${SOROBAN_P2P_LISTEN_PORT} \
+            --p2pRoom=${SOROBAN_P2P_ROOM} \
+            --p2pBootstrap=${SOROBAN_P2P_BOOTSTRAP}"
+    fi
+    
+    # Add Tor configuration if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" = "on" ]; then
+        SOROBAN_CMD="$SOROBAN_CMD --withTor=true"
+    fi
+    
+    # Start Soroban
+    su -s /bin/sh soroban -c "$SOROBAN_CMD > /home/soroban/data/soroban.log 2>&1 &"
+    soroban_process=$!
+    
+    echo "[i] Soroban started with PID $soroban_process"
+    
+    # Wait a moment for Soroban to initialize
+    sleep 2
+    
+    # Verify Soroban is listening
+    if nc -z ${NET_DOJO_SOROBAN_IPV4} ${SOROBAN_PORT} 2>/dev/null; then
+        echo "[i] Soroban is listening on port ${SOROBAN_PORT}"
+    else
+        echo "[!] Warning: Soroban may not be listening on port ${SOROBAN_PORT}"
+        echo "[!] Check logs at /home/soroban/data/soroban.log"
+    fi
 fi
 
-# Start dojo
-if [ "$SOROBAN_INSTALL" = "on" ]; then
-	/home/node/app/wait-for-it.sh 127.0.0.1:4242 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
-else
-	/home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
-fi
+# Start node services
+/home/node/app/wait-for-it.sh 127.0.0.1:3306 --timeout=720 --strict -- pm2-runtime -u node --raw /home/node/app/pm2.config.cjs &
 backend_process=$!
 
 # Start nginx
 /home/node/app/wait-for-it.sh 127.0.0.1:8080 --timeout=720 --strict -- nginx &
 frontend_process=$!
 
+# Start Soroban if enabled
+echo "[i] Checking Soroban configuration..."
+echo "[i] SOROBAN_INSTALL=$SOROBAN_INSTALL"
+echo "[i] SOROBAN_ANNOUNCE=$SOROBAN_ANNOUNCE"
+
+if [ "$SOROBAN_INSTALL" == "on" ]; then
+    echo "[i] Starting Soroban service..."
+    
+    # Setup Soroban onion address if announce is enabled
+    if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
+        echo "[i] Soroban announce mode is ENABLED"
+        echo "[i] Attempting to read Soroban Tor address from config..."
+        
+        # Try different possible config paths
+        SOROBAN_TOR_ADDRESS=$(yq e '.interfaces.soroban.tor-address' /root/start9/config.yaml 2>/dev/null)
+        echo "[i] Tried .interfaces.soroban.tor-address: $SOROBAN_TOR_ADDRESS"
+        
+        if [ -z "$SOROBAN_TOR_ADDRESS" ] || [ "$SOROBAN_TOR_ADDRESS" == "null" ]; then
+            SOROBAN_TOR_ADDRESS=$(yq e '.soroban-tor-address' /root/start9/config.yaml 2>/dev/null)
+            echo "[i] Tried .soroban-tor-address: $SOROBAN_TOR_ADDRESS"
+        fi
+        
+        if [ -z "$SOROBAN_TOR_ADDRESS" ] || [ "$SOROBAN_TOR_ADDRESS" == "null" ]; then
+            echo "[!] WARNING: Could not find Soroban Tor address in config!"
+            echo "[!] Dumping config structure for debugging:"
+            yq e '.' /root/start9/config.yaml | head -n 50
+        else
+            echo "[i] Soroban Tor address found: $SOROBAN_TOR_ADDRESS"
+        fi
+        
+        # Create the onion directory and file
+        echo "[i] Creating Soroban onion directory..."
+        mkdir -p /var/lib/tor/hsv3soroban
+        echo "$SOROBAN_TOR_ADDRESS" > "$SOROBAN_ONION_FILE"
+        chown -R soroban:soroban /var/lib/tor/hsv3soroban
+        echo "[i] Soroban onion file written to: $SOROBAN_ONION_FILE"
+        
+        echo "[i] Soroban will announce with onion address: $SOROBAN_TOR_ADDRESS"
+    else
+        echo "[i] Soroban announce mode is DISABLED"
+    fi
+    
+    echo "[i] Starting Soroban process as soroban user..."
+    # Start Soroban as the soroban user
+    runuser -u soroban -- /usr/local/bin/start-soroban.sh >> /var/log/soroban_startup.log 2>&1 &
+    soroban_process=$!
+    echo "[i] Soroban started with PID: $soroban_process"
+else
+    echo "[i] Soroban is disabled (SOROBAN_INSTALL=$SOROBAN_INSTALL)"
+    soroban_process=""
+fi
+
 echo '[i] All processes initialized'
 
 # SIGTERM HANDLING
 trap _term SIGTERM
 
-wait -n $db_process $backend_process $frontend_process $soroban_process
+if [ -n "$soroban_process" ]; then
+    wait -n $db_process $backend_process $frontend_process $soroban_process
+else
+    wait -n $db_process $backend_process $frontend_process
+fi
