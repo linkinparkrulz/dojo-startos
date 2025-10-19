@@ -41,11 +41,11 @@ if [ "$SOROBAN_ANNOUNCE" == "on" ]; then
       if [[ "$ONION_HOSTNAME" != *.onion ]]; then
         ONION_HOSTNAME="${ONION_HOSTNAME}.onion"
       fi
-      
+
       # Try to reach the RPC endpoint through the onion service with shorter timeout
       RPC_API_URL="http://${ONION_HOSTNAME}/rpc"
       SOROBAN_ANNOUNCE_KEY=$([[ "$COMMON_BTC_NETWORK" == "testnet" ]] && echo "$SOROBAN_ANNOUNCE_KEY_TEST" || echo "$SOROBAN_ANNOUNCE_KEY_MAIN")
-      
+
       # Test SOCKS5 proxy connectivity first
       if ! nc -z localhost 9050 2>/dev/null; then
         echo "Warning: Tor SOCKS5 proxy not accessible, but basic soroban service is healthy" >&2
