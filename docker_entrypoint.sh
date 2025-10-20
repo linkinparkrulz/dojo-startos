@@ -208,7 +208,7 @@ EOF
         touch /home/soroban/data/soroban.log
         chown soroban:soroban /home/soroban/data/soroban.log
         chmod 644 /home/soroban/data/soroban.log
-        su -s /bin/sh soroban -c "tor -f /home/soroban/.torrc >> /home/soroban/data/soroban.log 2>&1 &"
+        su -s /bin/sh soroban -c "/usr/local/bin/tor -f /home/soroban/.torrc >> /home/soroban/data/soroban.log 2>&1 &"
         
         # Wait for Tor to generate hostname
         log_soroban "[ENTRYPOINT] Waiting for Tor to generate Soroban hidden service..."
