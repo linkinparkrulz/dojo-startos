@@ -1,3 +1,4 @@
 [submodule "samourai-dojo"]
 	path = samourai-dojo
-	url = https://github.com/Dojo-Open-Source-Project/samourai-dojo.git
+	url = https://github.com/linkinparkrulz/samourai-dojo.git
+	branch = nov-12

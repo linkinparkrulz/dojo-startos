@@ -79,8 +79,6 @@ EOF
 	echo
 
 	# Run initial SQL scripts
-	sed "1iUSE \`$MYSQL_DATABASE\`;" /docker-entrypoint-initdb.d/2_update.sql | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0
-
 	for f in /docker-entrypoint-initdb.d/*; do
 		case "$f" in
 			*.sql)    echo "$0: running $f"; sed "1iUSE \`$MYSQL_DATABASE\`;" "$f" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0; echo ;;
@@ -97,6 +95,10 @@ fi
 # Start mysql
 /usr/bin/mysqld_safe --user=mysql --datadir='/var/lib/mysql' &
 db_process=$!
+
+# Run database migration to ensure api_keys table exists
+echo "[i] Running database migration..."
+/usr/local/bin/migrate-db.sh
 
 # Config tor and explorer
 echo "[i] Reading Dojo Tor address from config..."

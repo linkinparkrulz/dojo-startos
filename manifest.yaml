@@ -1,7 +1,7 @@
 id: dojo
 title: 'Dojo'
-version: 1.28.0.0
-release-notes: Version v1.28.0
+version: 1.28.2
+release-notes: Version v1.28.2
 license: AGPLv3
 wrapper-repo: 'https://github.com/ericpp/dojo-startos'
 upstream-repo: 'https://github.com/Dojo-Open-Source-Project/samourai-dojo'
@@ -80,16 +80,6 @@ health-checks:
     inject: true
     system: false
     io-format: yaml
-  soroban:
-    name: Soroban
-    success-message: Soroban is running
-    type: docker
-    image: main
-    entrypoint: "check-soroban.sh"
-    args: []
-    inject: true
-    system: false
-    io-format: yaml
 config:
   get:
     type: script
@@ -109,6 +99,16 @@ interfaces:
     tor-config:
       port-mapping:
         80: '9000'
+    ui: true
+    protocols:
+      - tcp
+      - http
+  soroban-interface:
+    name: Soroban Interface
+    description: Web interface for Soroban
+    tor-config:
+      port-mapping:
+        80: '4242'
     ui: true
     protocols:
       - tcp
@@ -190,3 +190,52 @@ migrations:
     '*':
       type: script
       args: ['to']
+actions:
+  generate-api-key:
+    name: Generate API Key
+    description: Create a new Dojo API key for wallet pairing
+    warning: This will create a new API key. Make sure to save it securely as it cannot be retrieved later.
+    allowed-statuses:
+      - running
+    implementation:
+      type: docker
+      image: main
+      system: false
+      entrypoint: /usr/local/bin/generate-api-key.sh
+      args: []
+      mounts:
+        main: /root/data
+      io-format: yaml
+    input-spec:
+      label:
+        type: string
+        name: Label
+        description: A descriptive label for this API key (e.g., "Alice's Mobile Wallet")
+        nullable: false
+        masked: false
+        placeholder: My Wallet
+      expiry-days:
+        type: number
+        name: Expiration (Days)
+        description: Number of days until the API key expires
+        nullable: false
+        default: 365
+        range: '[1,3650]'
+        integral: true
+        units: days
+  list-api-keys:
+    name: List API Keys
+    description: View all existing Dojo API keys and their status
+    warning: null
+    allowed-statuses:
+      - running
+    implementation:
+      type: docker
+      image: main
+      system: false
+      entrypoint: /usr/local/bin/list-api-keys.sh
+      args: []
+      mounts:
+        main: /root/data
+      io-format: yaml
+    input-spec: {}

@@ -114,7 +114,7 @@ RUN cp /usr/local/etc/tor/torrc.sample /home/tor/.torrc
 
 ### Soroban
 
-ENV SOROBAN_HOME /home/soroban
+ENV SOROBAN_HOME=/home/soroban
 ARG SOROBAN_LINUX_UID=1111
 ARG SOROBAN_LINUX_GID=1114
 
@@ -147,4 +147,7 @@ COPY --chmod=755 ./check-mysql.sh /usr/local/bin/
 COPY --chmod=755 ./check-pushtx.sh /usr/local/bin/
 COPY --chmod=755 ./check-soroban.sh /usr/local/bin/
 COPY --chmod=755 ./functions.sh /usr/local/bin/
+COPY --chmod=755 ./generate-api-key.sh /usr/local/bin/
+COPY --chmod=755 ./list-api-keys.sh /usr/local/bin/
+COPY --chmod=755 ./migrate-db.sh /usr/local/bin/
 COPY --chmod=755 ./samourai-dojo/docker/my-dojo/soroban/restart.sh /usr/local/bin/soroban-restart.sh
